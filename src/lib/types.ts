@@ -16,6 +16,12 @@ export interface Channel {
   created_at: string;
 }
 
+export interface ReactionGroup {
+  emoji: string;
+  count: number;
+  user_reacted: boolean;
+}
+
 export interface Message {
   id: string;
   channel_id: string;
@@ -26,10 +32,14 @@ export interface Message {
   file_type: string | null;
   is_pinned?: boolean;
   tag?: PostTag | null;
+  reply_to?: string | null;
+  edited_at?: string | null;
   created_at: string;
   profiles?: Profile;
   vote_count?: number;
   user_has_voted?: boolean;
+  reactions?: ReactionGroup[];
+  reply_message?: Message | null;
 }
 
 export interface InviteCode {
@@ -74,3 +84,5 @@ export interface MessageComment {
   created_at: string;
   profiles?: Profile;
 }
+
+export const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "🎉", "🔥", "👀", "💯"];
