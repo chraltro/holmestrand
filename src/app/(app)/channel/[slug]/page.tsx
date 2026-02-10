@@ -7,7 +7,7 @@ import { MessageList } from "@/components/chat/MessageList";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { FileGrid } from "@/components/files/FileGrid";
 import { Channel } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 
 export default function ChannelPage() {
@@ -39,6 +39,16 @@ export default function ChannelPage() {
     setActiveTab("chat");
   }, [slug, supabase]);
 
+  const handleTogglePin = useCallback(
+    async (messageId: string, isPinned: boolean) => {
+      await supabase
+        .from("messages")
+        .update({ is_pinned: !isPinned })
+        .eq("id", messageId);
+    },
+    [supabase]
+  );
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -50,7 +60,7 @@ export default function ChannelPage() {
   if (!channel) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-500">Kanalen ble ikke funnet</p>
+        <p className="text-gray-500 dark:text-gray-400">Kanalen ble ikke funnet</p>
       </div>
     );
   }
@@ -58,9 +68,9 @@ export default function ChannelPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Channel header */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
+      <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             # {channel.name}
           </h2>
         </div>
@@ -72,7 +82,7 @@ export default function ChannelPage() {
             className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
               activeTab === "chat"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
             Chat
@@ -82,7 +92,7 @@ export default function ChannelPage() {
             className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
               activeTab === "filer"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
             Filer
@@ -98,11 +108,12 @@ export default function ChannelPage() {
             loading={messagesLoading}
             hasMore={hasMore}
             onLoadMore={loadMore}
+            onTogglePin={handleTogglePin}
           />
           {user && <MessageInput channelId={channel.id} userId={user.id} />}
         </>
       ) : (
-        <FileGrid channelId={channel.id} />
+        <FileGrid channelId={channel.id} onTogglePin={handleTogglePin} />
       )}
     </div>
   );

@@ -16,7 +16,6 @@ export function InviteCodeForm({ userId }: { userId: string }) {
     setError("");
     setLoading(true);
 
-    // Validate the invite code
     const { data: inviteCode } = await supabase
       .from("invite_codes")
       .select("id")
@@ -30,7 +29,6 @@ export function InviteCodeForm({ userId }: { userId: string }) {
       return;
     }
 
-    // Approve the user
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ is_approved: true })
@@ -48,12 +46,12 @@ export function InviteCodeForm({ userId }: { userId: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <p className="text-sm text-gray-600 mb-4 text-center">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
           Skriv inn invitasjonskoden for å få tilgang
         </p>
         <label
           htmlFor="invite-code"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
           Invitasjonskode
         </label>
@@ -63,12 +61,12 @@ export function InviteCodeForm({ userId }: { userId: string }) {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Skriv koden her..."
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-base sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <button
         type="submit"

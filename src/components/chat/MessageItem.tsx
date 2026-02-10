@@ -50,7 +50,7 @@ function FileAttachment({
         <img
           src={fileUrl}
           alt={fileName || "Bilde"}
-          className="max-w-xs max-h-64 rounded-lg border border-gray-200 object-cover"
+          className="max-w-xs max-h-64 rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
         />
       </a>
     );
@@ -61,7 +61,7 @@ function FileAttachment({
       href={fileUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-2 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 transition-colors max-w-xs"
+      className="mt-2 flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors max-w-xs"
     >
       {isPdfType(fileType) ? (
         <svg
@@ -73,7 +73,7 @@ function FileAttachment({
         </svg>
       ) : (
         <svg
-          className="w-8 h-8 text-gray-400 flex-shrink-0"
+          className="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -86,18 +86,24 @@ function FileAttachment({
           />
         </svg>
       )}
-      <span className="truncate text-gray-700">
+      <span className="truncate text-gray-700 dark:text-gray-300">
         {fileName || "Fil"}
       </span>
     </a>
   );
 }
 
-export function MessageItem({ message }: { message: Message }) {
+export function MessageItem({
+  message,
+  onTogglePin,
+}: {
+  message: Message;
+  onTogglePin?: (messageId: string, isPinned: boolean) => void;
+}) {
   const profile = message.profiles;
 
   return (
-    <div className="flex gap-3 px-4 py-2 hover:bg-gray-50 group">
+    <div className="flex gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
       {profile?.avatar_url ? (
         <img
           src={profile.avatar_url}
@@ -105,21 +111,38 @@ export function MessageItem({ message }: { message: Message }) {
           className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5"
         />
       ) : (
-        <div className="w-9 h-9 rounded-full bg-gray-300 flex-shrink-0 mt-0.5 flex items-center justify-center text-sm font-medium text-gray-600">
+        <div className="w-9 h-9 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 mt-0.5 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300">
           {(profile?.display_name || "?")[0].toUpperCase()}
         </div>
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {profile?.display_name || "Ukjent bruker"}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 dark:text-gray-500">
             {formatTime(message.created_at)}
           </span>
+          {message.file_url && onTogglePin && (
+            <button
+              onClick={() => onTogglePin(message.id, !!message.is_pinned)}
+              className="opacity-0 group-hover:opacity-100 text-xs transition-all ml-auto"
+              title={message.is_pinned ? "Fjern fra festet" : "Fest fil"}
+            >
+              {message.is_pinned ? (
+                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-gray-400 hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
-        {message.content && (
-          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+        {message.content && !message.file_url && (
+          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
             {message.content}
           </p>
         )}
