@@ -25,8 +25,11 @@ export interface Message {
   file_name: string | null;
   file_type: string | null;
   is_pinned?: boolean;
+  tag?: PostTag | null;
   created_at: string;
   profiles?: Profile;
+  vote_count?: number;
+  user_has_voted?: boolean;
 }
 
 export interface InviteCode {
@@ -63,32 +66,9 @@ export const POST_TAG_COLORS: Record<PostTag, string> = {
   vedtatt: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
 };
 
-export interface Board {
+export interface MessageComment {
   id: string;
-  name: string;
-  slug: string;
-  created_by: string | null;
-  created_at: string;
-}
-
-export interface BoardPost {
-  id: string;
-  board_id: string;
-  user_id: string;
-  image_url: string;
-  image_name: string | null;
-  caption: string;
-  tag: PostTag;
-  created_at: string;
-  profiles?: Profile;
-  vote_count?: number;
-  user_has_voted?: boolean;
-  comment_count?: number;
-}
-
-export interface BoardComment {
-  id: string;
-  post_id: string;
+  message_id: string;
   user_id: string;
   content: string;
   created_at: string;
