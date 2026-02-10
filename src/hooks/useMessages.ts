@@ -135,18 +135,26 @@ export function useMessages(channelId: string | null, currentUserId: string | nu
   }, [channelId, hasMore, messages, supabase, enrichMessages]);
 
   const deleteMessage = useCallback(async (messageId: string) => {
+    const prev = messages;
     const msg = messages.find((m) => m.id === messageId);
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    setMessages((p) => p.filter((m) => m.id !== messageId));
 
-    // Delete file from storage if message has one
+    // Delete message row from DB first
+    const { error } = await supabase.from("messages").delete().eq("id", messageId);
+    if (error) {
+      console.error("Failed to delete message:", error);
+      alert("Kunne ikke slette meldingen. Mangler kanskje rettigheter i databasen.");
+      setMessages(prev);
+      return;
+    }
+
+    // Delete file from storage if message had one
     if (msg?.file_url) {
-      const match = msg.file_url.match(/\/files\/(.+)$/);
+      const match = msg.file_url.match(/\/object\/public\/files\/(.+?)(\?|$)/);
       if (match) {
         await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
       }
     }
-
-    await supabase.from("messages").delete().eq("id", messageId);
   }, [supabase, messages]);
 
   const togglePin = useCallback(async (messageId: string, currentlyPinned: boolean) => {
