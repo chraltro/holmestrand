@@ -58,10 +58,8 @@ export function useMessages(channelId: string | null) {
           filter: `channel_id=eq.${channelId}`,
         },
         async (payload) => {
-          // Only handle messages for the current channel
           if (channelIdRef.current !== channelId) return;
 
-          // Fetch the full message with profile
           const { data } = await supabase
             .from("messages")
             .select("*, profiles(*)")
@@ -70,11 +68,42 @@ export function useMessages(channelId: string | null) {
 
           if (data) {
             setMessages((prev) => {
-              // Avoid duplicates
               if (prev.some((m) => m.id === data.id)) return prev;
               return [...prev, data];
             });
           }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${channelId}`,
+        },
+        (payload) => {
+          if (channelIdRef.current !== channelId) return;
+          const updated = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === updated.id ? { ...m, ...updated } : m
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${channelId}`,
+        },
+        (payload) => {
+          if (channelIdRef.current !== channelId) return;
+          const deletedId = payload.old.id as string;
+          setMessages((prev) => prev.filter((m) => m.id !== deletedId));
         }
       )
       .subscribe();
@@ -103,5 +132,26 @@ export function useMessages(channelId: string | null) {
     }
   }, [channelId, hasMore, messages, supabase]);
 
-  return { messages, loading, hasMore, loadMore };
+  // Delete a message
+  const deleteMessage = useCallback(async (messageId: string) => {
+    // Optimistic removal
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    await supabase.from("messages").delete().eq("id", messageId);
+  }, [supabase]);
+
+  // Toggle pin on a message
+  const togglePin = useCallback(async (messageId: string, currentlyPinned: boolean) => {
+    // Optimistic update
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId ? { ...m, is_pinned: !currentlyPinned } : m
+      )
+    );
+    await supabase
+      .from("messages")
+      .update({ is_pinned: !currentlyPinned })
+      .eq("id", messageId);
+  }, [supabase]);
+
+  return { messages, loading, hasMore, loadMore, deleteMessage, togglePin };
 }

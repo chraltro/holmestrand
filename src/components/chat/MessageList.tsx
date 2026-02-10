@@ -10,6 +10,9 @@ interface MessageListProps {
   hasMore: boolean;
   onLoadMore: () => void;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
+  onDelete?: (messageId: string) => void;
+  currentUserId: string | null;
+  isAdmin: boolean;
 }
 
 interface FileInfo {
@@ -66,6 +69,9 @@ export function MessageList({
   hasMore,
   onLoadMore,
   onTogglePin,
+  onDelete,
+  currentUserId,
+  isAdmin,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +138,9 @@ export function MessageList({
                 : undefined
             }
             onTogglePin={onTogglePin}
+            onDelete={onDelete}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
           />
         ))}
       </div>
