@@ -46,3 +46,51 @@ export interface Document {
   sort_order: number;
   created_at: string;
 }
+
+export type PostTag = "dagens" | "inspo" | "forslag" | "vedtatt";
+
+export const POST_TAG_LABELS: Record<PostTag, string> = {
+  dagens: "Slik det ser ut nå",
+  inspo: "Inspirasjon",
+  forslag: "Forslag / Mockup",
+  vedtatt: "Vedtatt",
+};
+
+export const POST_TAG_COLORS: Record<PostTag, string> = {
+  dagens: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  inspo: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+  forslag: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  vedtatt: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+};
+
+export interface Board {
+  id: string;
+  name: string;
+  slug: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface BoardPost {
+  id: string;
+  board_id: string;
+  user_id: string;
+  image_url: string;
+  image_name: string | null;
+  caption: string;
+  tag: PostTag;
+  created_at: string;
+  profiles?: Profile;
+  vote_count?: number;
+  user_has_voted?: boolean;
+  comment_count?: number;
+}
+
+export interface BoardComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: Profile;
+}
