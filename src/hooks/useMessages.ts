@@ -135,9 +135,19 @@ export function useMessages(channelId: string | null, currentUserId: string | nu
   }, [channelId, hasMore, messages, supabase, enrichMessages]);
 
   const deleteMessage = useCallback(async (messageId: string) => {
+    const msg = messages.find((m) => m.id === messageId);
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
+
+    // Delete file from storage if message has one
+    if (msg?.file_url) {
+      const match = msg.file_url.match(/\/files\/(.+)$/);
+      if (match) {
+        await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
+      }
+    }
+
     await supabase.from("messages").delete().eq("id", messageId);
-  }, [supabase]);
+  }, [supabase, messages]);
 
   const togglePin = useCallback(async (messageId: string, currentlyPinned: boolean) => {
     setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, is_pinned: !currentlyPinned } : m));

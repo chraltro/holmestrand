@@ -165,7 +165,7 @@ export default function ChannelPage() {
           )}
         </>
       ) : activeTab === "filer" ? (
-        <FileGrid channelId={channel.id} onTogglePin={togglePin} />
+        <FileGrid channelId={channel.id} onTogglePin={togglePin} currentUserId={user?.id ?? null} isAdmin={!!profile?.is_admin} />
       ) : (
         <BoardGrid channelId={channel.id} userId={user?.id ?? null} />
       )}

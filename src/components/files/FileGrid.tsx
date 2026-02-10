@@ -26,9 +26,13 @@ function formatDate(dateStr: string) {
 export function FileGrid({
   channelId,
   onTogglePin,
+  currentUserId,
+  isAdmin,
 }: {
   channelId: string;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
+  currentUserId?: string | null;
+  isAdmin?: boolean;
 }) {
   const supabase = createClient();
   const [files, setFiles] = useState<Message[]>([]);
@@ -114,14 +118,28 @@ export function FileGrid({
   }
 
   function handleTogglePin(messageId: string, isPinned: boolean) {
-    // Optimistically update local state
     setFiles((prev) =>
       prev.map((f) =>
         f.id === messageId ? { ...f, is_pinned: !isPinned } : f
       )
     );
-    // Also call the parent handler to update DB
     onTogglePin?.(messageId, isPinned);
+  }
+
+  async function handleDeleteFile(file: Message) {
+    if (!confirm(`Er du sikker på at du vil slette "${file.file_name || "denne filen"}"?`)) return;
+    setFiles((prev) => prev.filter((f) => f.id !== file.id));
+
+    // Delete from storage
+    if (file.file_url) {
+      const match = file.file_url.match(/\/files\/(.+)$/);
+      if (match) {
+        await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
+      }
+    }
+
+    // Delete message row
+    await supabase.from("messages").delete().eq("id", file.id);
   }
 
   const pinnedFiles = files.filter((f) => f.is_pinned);
@@ -144,6 +162,7 @@ export function FileGrid({
                 key={file.id}
                 file={file}
                 onTogglePin={handleTogglePin}
+                onDelete={(isAdmin || (currentUserId && file.user_id === currentUserId)) ? () => handleDeleteFile(file) : undefined}
                 allImageUrls={allImageUrls}
                 draggable
                 isDragging={draggedId === file.id}
@@ -164,6 +183,7 @@ export function FileGrid({
             key={file.id}
             file={file}
             onTogglePin={handleTogglePin}
+            onDelete={(isAdmin || (currentUserId && file.user_id === currentUserId)) ? () => handleDeleteFile(file) : undefined}
             allImageUrls={allImageUrls}
           />
         ))}
@@ -175,6 +195,7 @@ export function FileGrid({
 function FileCard({
   file,
   onTogglePin,
+  onDelete,
   allImageUrls,
   draggable,
   isDragging,
@@ -186,6 +207,7 @@ function FileCard({
 }: {
   file: Message;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
+  onDelete?: () => void;
   allImageUrls: string[];
   draggable?: boolean;
   isDragging?: boolean;
@@ -266,23 +288,36 @@ function FileCard({
         </a>
       )}
 
-      {onTogglePin && (
-        <button
-          onClick={() => onTogglePin(file.id, !!file.is_pinned)}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-200 dark:border-gray-600 transition-opacity"
-          title={file.is_pinned ? "Fjern fra festet" : "Fest fil"}
-        >
-          {file.is_pinned ? (
-            <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+        {onTogglePin && (
+          <button
+            onClick={() => onTogglePin(file.id, !!file.is_pinned)}
+            className="bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-200 dark:border-gray-600"
+            title={file.is_pinned ? "Fjern fra festet" : "Fest fil"}
+          >
+            {file.is_pinned ? (
+              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+              </svg>
+            )}
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            title="Slett fil"
+          >
+            <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-          ) : (
-            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
-            </svg>
-          )}
-        </button>
-      )}
+          </button>
+        )}
+      </div>
 
       <div className="p-2">
         <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
