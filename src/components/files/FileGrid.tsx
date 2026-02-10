@@ -128,18 +128,25 @@ export function FileGrid({
 
   async function handleDeleteFile(file: Message) {
     if (!confirm(`Er du sikker på at du vil slette "${file.file_name || "denne filen"}"?`)) return;
-    setFiles((prev) => prev.filter((f) => f.id !== file.id));
+    const prev = files;
+    setFiles((p) => p.filter((f) => f.id !== file.id));
+
+    // Delete message row from DB first
+    const { error } = await supabase.from("messages").delete().eq("id", file.id);
+    if (error) {
+      console.error("Failed to delete file:", error);
+      alert("Kunne ikke slette filen. Mangler kanskje rettigheter i databasen.");
+      setFiles(prev);
+      return;
+    }
 
     // Delete from storage
     if (file.file_url) {
-      const match = file.file_url.match(/\/files\/(.+)$/);
+      const match = file.file_url.match(/\/object\/public\/files\/(.+?)(\?|$)/);
       if (match) {
         await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
       }
     }
-
-    // Delete message row
-    await supabase.from("messages").delete().eq("id", file.id);
   }
 
   const pinnedFiles = files.filter((f) => f.is_pinned);
