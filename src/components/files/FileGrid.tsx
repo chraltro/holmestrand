@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { Message } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { useLightbox } from "@/components/ui/ImageLightbox";
+import { useEffect, useState, useMemo } from "react";
 
 function isImageType(fileType: string | null): boolean {
   if (!fileType) return false;
@@ -32,6 +33,7 @@ export function FileGrid({
   const supabase = createClient();
   const [files, setFiles] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const { openLightbox } = useLightbox();
 
   useEffect(() => {
     async function fetchFiles() {
@@ -48,6 +50,15 @@ export function FileGrid({
 
     fetchFiles();
   }, [channelId, supabase]);
+
+  // Collect all image URLs for lightbox navigation
+  const allImageUrls = useMemo(
+    () =>
+      files
+        .filter((f) => isImageType(f.file_type) && f.file_url)
+        .map((f) => f.file_url!),
+    [files]
+  );
 
   if (loading) {
     return (
@@ -80,7 +91,12 @@ export function FileGrid({
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {pinnedFiles.map((file) => (
-              <FileCard key={file.id} file={file} onTogglePin={onTogglePin} />
+              <FileCard
+                key={file.id}
+                file={file}
+                onTogglePin={onTogglePin}
+                allImageUrls={allImageUrls}
+              />
             ))}
           </div>
         </div>
@@ -88,7 +104,12 @@ export function FileGrid({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {(pinnedFiles.length > 0 ? otherFiles : files).map((file) => (
-          <FileCard key={file.id} file={file} onTogglePin={onTogglePin} />
+          <FileCard
+            key={file.id}
+            file={file}
+            onTogglePin={onTogglePin}
+            allImageUrls={allImageUrls}
+          />
         ))}
       </div>
     </div>
@@ -98,18 +119,30 @@ export function FileGrid({
 function FileCard({
   file,
   onTogglePin,
+  allImageUrls,
 }: {
   file: Message;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
+  allImageUrls: string[];
 }) {
+  const { openLightbox } = useLightbox();
+  const isImage = isImageType(file.file_type);
+
+  function handleClick(e: React.MouseEvent) {
+    if (isImage && file.file_url) {
+      e.preventDefault();
+      const idx = allImageUrls.indexOf(file.file_url);
+      openLightbox(allImageUrls, idx >= 0 ? idx : 0);
+    }
+  }
+
   return (
     <div className="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-      <a
-        href={file.file_url!}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {isImageType(file.file_type) ? (
+      {isImage ? (
+        <button
+          onClick={handleClick}
+          className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
           <div className="aspect-square bg-gray-100 dark:bg-gray-800">
             <img
               src={file.file_url!}
@@ -117,7 +150,13 @@ function FileCard({
               className="w-full h-full object-cover"
             />
           </div>
-        ) : (
+        </button>
+      ) : (
+        <a
+          href={file.file_url!}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <div className="aspect-square bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
             {isPdfType(file.file_type) ? (
               <svg
@@ -143,8 +182,8 @@ function FileCard({
               </svg>
             )}
           </div>
-        )}
-      </a>
+        </a>
+      )}
 
       {onTogglePin && (
         <button

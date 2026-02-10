@@ -1,6 +1,7 @@
 "use client";
 
 import { Message } from "@/lib/types";
+import { useLightbox } from "@/components/ui/ImageLightbox";
 
 function formatTime(dateStr: string) {
   const date = new Date(dateStr);
@@ -35,7 +36,7 @@ function isPdfType(fileType: string | null): boolean {
   return fileType === "application/pdf";
 }
 
-function FileAttachment({
+function NonImageAttachment({
   fileUrl,
   fileName,
   fileType,
@@ -44,18 +45,6 @@ function FileAttachment({
   fileName: string | null;
   fileType: string | null;
 }) {
-  if (isImageType(fileType)) {
-    return (
-      <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="block mt-2">
-        <img
-          src={fileUrl}
-          alt={fileName || "Bilde"}
-          className="max-w-xs max-h-64 rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
-        />
-      </a>
-    );
-  }
-
   return (
     <a
       href={fileUrl}
@@ -93,14 +82,44 @@ function FileAttachment({
   );
 }
 
+interface FileInfo {
+  url: string;
+  name: string | null;
+  type: string | null;
+  messageId: string;
+  isPinned?: boolean;
+}
+
 export function MessageItem({
   message,
+  groupedFiles,
   onTogglePin,
 }: {
   message: Message;
+  groupedFiles?: FileInfo[];
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
 }) {
+  const { openLightbox } = useLightbox();
   const profile = message.profiles;
+
+  // Collect all files for this message (main + grouped)
+  const allFiles: FileInfo[] = [];
+  if (message.file_url) {
+    allFiles.push({
+      url: message.file_url,
+      name: message.file_name,
+      type: message.file_type,
+      messageId: message.id,
+      isPinned: message.is_pinned,
+    });
+  }
+  if (groupedFiles) {
+    allFiles.push(...groupedFiles);
+  }
+
+  const imageFiles = allFiles.filter((f) => isImageType(f.type));
+  const nonImageFiles = allFiles.filter((f) => !isImageType(f.type));
+  const allImageUrls = imageFiles.map((f) => f.url);
 
   return (
     <div className="flex gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
@@ -123,36 +142,86 @@ export function MessageItem({
           <span className="text-xs text-gray-400 dark:text-gray-500">
             {formatTime(message.created_at)}
           </span>
-          {message.file_url && onTogglePin && (
+          {allFiles.length > 0 && onTogglePin && (
             <button
-              onClick={() => onTogglePin(message.id, !!message.is_pinned)}
+              onClick={() =>
+                onTogglePin(message.id, !!message.is_pinned)
+              }
               className="opacity-0 group-hover:opacity-100 text-xs transition-all ml-auto"
               title={message.is_pinned ? "Fjern fra festet" : "Fest fil"}
             >
               {message.is_pinned ? (
-                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 text-blue-500"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
                 </svg>
               ) : (
-                <svg className="w-4 h-4 text-gray-400 hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                <svg
+                  className="w-4 h-4 text-gray-400 hover:text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"
+                  />
                 </svg>
               )}
             </button>
           )}
         </div>
-        {message.content && !message.file_url && (
+
+        {/* Text-only message (no files) */}
+        {message.content && allFiles.length === 0 && (
           <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
             {message.content}
           </p>
         )}
-        {message.file_url && (
-          <FileAttachment
-            fileUrl={message.file_url}
-            fileName={message.file_name}
-            fileType={message.file_type}
-          />
+
+        {/* Image grid */}
+        {imageFiles.length > 0 && (
+          <div
+            className={`mt-2 gap-2 ${
+              imageFiles.length === 1
+                ? "flex"
+                : "grid grid-cols-2 sm:grid-cols-3 max-w-md"
+            }`}
+          >
+            {imageFiles.map((file, idx) => (
+              <button
+                key={file.messageId + file.url}
+                onClick={() => openLightbox(allImageUrls, idx)}
+                className="block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <img
+                  src={file.url}
+                  alt={file.name || "Bilde"}
+                  className={`object-cover ${
+                    imageFiles.length === 1
+                      ? "max-w-xs max-h-64"
+                      : "w-full aspect-square"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
         )}
+
+        {/* Non-image files */}
+        {nonImageFiles.map((file) => (
+          <NonImageAttachment
+            key={file.messageId + file.url}
+            fileUrl={file.url}
+            fileName={file.name}
+            fileType={file.type}
+          />
+        ))}
       </div>
     </div>
   );

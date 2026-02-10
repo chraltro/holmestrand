@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
 import { useTheme } from "@/hooks/useTheme";
 import { ChannelSidebar } from "@/components/channels/ChannelSidebar";
+import { LightboxProvider } from "@/components/ui/ImageLightbox";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -103,7 +104,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {children}
+        <LightboxProvider>{children}</LightboxProvider>
       </div>
     </div>
   );
