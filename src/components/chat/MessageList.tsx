@@ -9,6 +9,7 @@ interface MessageListProps {
   loading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
+  onTogglePin?: (messageId: string, isPinned: boolean) => void;
 }
 
 export function MessageList({
@@ -16,15 +17,14 @@ export function MessageList({
   loading,
   hasMore,
   onLoadMore,
+  onTogglePin,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current) {
-      // Only auto-scroll if user was near the bottom
       const container = containerRef.current;
       if (container) {
         const isNearBottom =
@@ -56,7 +56,7 @@ export function MessageList({
         <div className="p-4 text-center">
           <button
             onClick={onLoadMore}
-            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
           >
             Last inn eldre meldinger
           </button>
@@ -73,7 +73,11 @@ export function MessageList({
 
       <div className="py-2">
         {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
+          <MessageItem
+            key={message.id}
+            message={message}
+            onTogglePin={onTogglePin}
+          />
         ))}
       </div>
 

@@ -26,7 +26,6 @@ export default function Home() {
 
       setUserId(user.id);
 
-      // Check if user has a profile and is approved
       const { data: profile } = await supabase
         .from("profiles")
         .select("is_approved")
@@ -38,7 +37,6 @@ export default function Home() {
         return;
       }
 
-      // User exists but not approved — show invite code form
       setNeedsInviteCode(true);
       setLoading(false);
     }
@@ -48,21 +46,25 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="animate-pulse text-gray-400 text-lg">Laster...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Huset</h1>
-          <p className="text-gray-500">Chat for husprosjektet</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Holmestrand
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Chat for husprosjektet
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           {needsInviteCode && userId ? (
             <InviteCodeForm userId={userId} />
           ) : (

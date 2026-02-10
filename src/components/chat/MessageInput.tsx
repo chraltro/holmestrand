@@ -8,12 +8,13 @@ interface MessageInputProps {
   userId: string;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 export function MessageInput({ channelId, userId }: MessageInputProps) {
   const supabase = createClient();
   const [content, setContent] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,13 +32,11 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
     });
   }
 
-  async function uploadFile(file: File) {
+  async function uploadFile(file: File): Promise<boolean> {
     if (file.size > MAX_FILE_SIZE) {
-      alert("Filen er for stor. Maks 5MB.");
-      return;
+      alert(`Filen "${file.name}" er for stor. Maks 25 MB.`);
+      return false;
     }
-
-    setUploading(true);
 
     const fileExt = file.name.split(".").pop();
     const filePath = `${channelId}/${Date.now()}-${Math.random()
@@ -46,12 +45,14 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
 
     const { error: uploadError } = await supabase.storage
       .from("files")
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        contentType: file.type,
+      });
 
     if (uploadError) {
-      alert("Kunne ikke laste opp filen. Prøv igjen.");
-      setUploading(false);
-      return;
+      console.error("Upload error:", uploadError);
+      alert(`Kunne ikke laste opp "${file.name}": ${uploadError.message}`);
+      return false;
     }
 
     const {
@@ -61,27 +62,47 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
     await supabase.from("messages").insert({
       channel_id: channelId,
       user_id: userId,
-      content: content.trim() || file.name,
+      content: file.name,
       file_url: publicUrl,
       file_name: file.name,
       file_type: file.type,
     });
 
+    return true;
+  }
+
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) return;
+
+    setUploading(true);
+    let uploaded = 0;
+
+    for (const file of files) {
+      setUploadProgress(
+        files.length > 1
+          ? `Laster opp ${uploaded + 1} av ${files.length}...`
+          : `Laster opp ${file.name}...`
+      );
+      const ok = await uploadFile(file);
+      if (ok) uploaded++;
+    }
+
     setContent("");
     setUploading(false);
+    setUploadProgress("");
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) uploadFiles(files);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) uploadFile(file);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) uploadFiles(files);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -93,8 +114,8 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
 
   return (
     <div
-      className={`border-t border-gray-200 bg-white p-4 ${
-        dragOver ? "bg-blue-50 border-blue-300" : ""
+      className={`border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 ${
+        dragOver ? "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700" : ""
       }`}
       onDragOver={(e) => {
         e.preventDefault();
@@ -104,25 +125,32 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
       onDrop={handleDrop}
     >
       {dragOver && (
-        <div className="text-center text-sm text-blue-600 mb-2">
-          Slipp filen her for å laste opp
+        <div className="text-center text-sm text-blue-600 dark:text-blue-400 mb-2">
+          Slipp filene her for å laste opp
         </div>
       )}
 
-      <form onSubmit={sendMessage} className="flex items-end gap-2">
+      {uploadProgress && (
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400 mb-2">
+          {uploadProgress}
+        </div>
+      )}
+
+      <form onSubmit={sendMessage} className="flex items-center gap-2">
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileSelect}
           className="hidden"
+          multiple
         />
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-2"
-          title="Last opp fil"
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2"
+          title="Last opp filer"
         >
           <svg
             className="w-5 h-5"
@@ -144,10 +172,10 @@ export function MessageInput({ channelId, userId }: MessageInputProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={uploading ? "Laster opp..." : "Skriv en melding..."}
+            placeholder={uploading ? uploadProgress : "Skriv en melding..."}
             disabled={uploading}
             rows={1}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 max-h-32"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-base sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 max-h-32 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             style={{ minHeight: "38px" }}
           />
         </div>
