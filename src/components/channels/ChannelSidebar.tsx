@@ -1,6 +1,6 @@
 "use client";
 
-import { Channel, Profile } from "@/lib/types";
+import { Channel, Board, Profile } from "@/lib/types";
 import { useTheme } from "@/hooks/useTheme";
 import { DocumentList } from "@/components/sidebar/DocumentList";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 
 interface ChannelSidebarProps {
   channels: Channel[];
+  boards: Board[];
   profile: Profile | null;
   onSignOut: () => void;
   onClose?: () => void;
@@ -15,6 +16,7 @@ interface ChannelSidebarProps {
 
 export function ChannelSidebar({
   channels,
+  boards,
   profile,
   onSignOut,
   onClose,
@@ -91,6 +93,37 @@ export function ChannelSidebar({
             </Link>
           );
         })}
+
+        {/* Boards section */}
+        {boards.length > 0 && (
+          <div className="py-3">
+            <div className="px-3 mb-2">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Tavler
+              </span>
+            </div>
+            {boards.map((board) => {
+              const isActive = pathname === `/boards/${board.slug}`;
+              return (
+                <Link
+                  key={board.id}
+                  href={`/boards/${board.slug}`}
+                  onClick={onClose}
+                  className={`flex items-center gap-2 mx-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    isActive
+                      ? "bg-gray-700 text-white"
+                      : "text-gray-400 hover:text-white hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {board.name}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* Documents section */}
         <DocumentList />

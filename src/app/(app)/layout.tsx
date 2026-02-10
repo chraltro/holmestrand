@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
+import { useBoards } from "@/hooks/useBoards";
 import { useTheme } from "@/hooks/useTheme";
 import { ChannelSidebar } from "@/components/channels/ChannelSidebar";
 import { LightboxProvider } from "@/components/ui/ImageLightbox";
@@ -11,6 +12,7 @@ import { useState, useEffect } from "react";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { channels, loading: channelsLoading } = useChannels();
+  const { boards, loading: boardsLoading } = useBoards();
   const { dark, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
@@ -24,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [authLoading, user, profile, router]);
 
-  if (authLoading || channelsLoading) {
+  if (authLoading || channelsLoading || boardsLoading) {
     return (
       <div className="h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="animate-pulse text-gray-400 text-lg">Laster...</div>
@@ -54,6 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <ChannelSidebar
           channels={channels}
+          boards={boards}
           profile={profile}
           onSignOut={signOut}
           onClose={() => setSidebarOpen(false)}

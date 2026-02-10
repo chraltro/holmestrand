@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Channel, InviteCode, Document } from "@/lib/types";
+import { Channel, InviteCode, Document, Board } from "@/lib/types";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
@@ -14,8 +14,10 @@ export default function AdminPage() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [boards, setBoards] = useState<Board[]>([]);
   const [newChannelName, setNewChannelName] = useState("");
   const [newInviteCode, setNewInviteCode] = useState("");
+  const [newBoardName, setNewBoardName] = useState("");
   const [newDocName, setNewDocName] = useState("");
   const [loading, setLoading] = useState(true);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -29,15 +31,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const [channelsRes, codesRes, docsRes] = await Promise.all([
+      const [channelsRes, codesRes, docsRes, boardsRes] = await Promise.all([
         supabase.from("channels").select("*").order("created_at"),
         supabase.from("invite_codes").select("*").order("created_at"),
         supabase.from("documents").select("*").order("sort_order"),
+        supabase.from("boards").select("*").order("created_at"),
       ]);
 
       if (channelsRes.data) setChannels(channelsRes.data);
       if (codesRes.data) setInviteCodes(codesRes.data);
       if (docsRes.data) setDocuments(docsRes.data);
+      if (boardsRes.data) setBoards(boardsRes.data);
       setLoading(false);
     }
 
@@ -154,6 +158,40 @@ export default function AdminPage() {
     setDocuments((prev) => prev.filter((d) => d.id !== id));
   }
 
+  async function createBoard(e: React.FormEvent) {
+    e.preventDefault();
+    const name = newBoardName.trim();
+    if (!name) return;
+
+    const slug = name
+      .toLowerCase()
+      .replace(/[æ]/g, "ae")
+      .replace(/[ø]/g, "o")
+      .replace(/[å]/g, "a")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const { data, error } = await supabase
+      .from("boards")
+      .insert({ name, slug, created_by: profile!.id })
+      .select()
+      .single();
+
+    if (error) {
+      alert("Kunne ikke opprette tavle. Slug finnes kanskje allerede.");
+      return;
+    }
+
+    if (data) setBoards((prev) => [...prev, data]);
+    setNewBoardName("");
+  }
+
+  async function deleteBoard(id: string) {
+    if (!confirm("Er du sikker på at du vil slette denne tavlen? Alle innlegg vil bli slettet.")) return;
+    await supabase.from("boards").delete().eq("id", id);
+    setBoards((prev) => prev.filter((b) => b.id !== id));
+  }
+
   if (authLoading || loading || !profile?.is_admin) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -184,6 +222,28 @@ export default function AdminPage() {
                 <button onClick={() => deleteChannel(channel.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors">Slett</button>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Boards */}
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tavler (rom/områder)</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Opprett tavler for hvert rom eller område, f.eks. Kjøkken, Stue, Bad. Brukere kan legge ut bilder med inspirasjon, forslag og status.</p>
+          <form onSubmit={createBoard} className="flex gap-2 mb-4">
+            <input type="text" value={newBoardName} onChange={(e) => setNewBoardName(e.target.value)} placeholder="Nytt rom/område..." className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-base sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="submit" disabled={!newBoardName.trim()} className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50">Opprett</button>
+          </form>
+          <div className="space-y-2">
+            {boards.map((board) => (
+              <div key={board.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{board.name}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">/{board.slug}</span>
+                </div>
+                <button onClick={() => deleteBoard(board.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors">Slett</button>
+              </div>
+            ))}
+            {boards.length === 0 && <p className="text-sm text-gray-400">Ingen tavler opprettet ennå</p>}
           </div>
         </section>
 
