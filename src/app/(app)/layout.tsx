@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
-import { useBoards } from "@/hooks/useBoards";
 import { useTheme } from "@/hooks/useTheme";
 import { ChannelSidebar } from "@/components/channels/ChannelSidebar";
 import { LightboxProvider } from "@/components/ui/ImageLightbox";
@@ -12,7 +11,6 @@ import { useState, useEffect } from "react";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { channels, loading: channelsLoading } = useChannels();
-  const { boards, loading: boardsLoading } = useBoards();
   const { dark, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
@@ -26,10 +24,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [authLoading, user, profile, router]);
 
-  if (authLoading || channelsLoading || boardsLoading) {
+  if (authLoading || channelsLoading) {
     return (
       <div className="h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="animate-pulse text-gray-400 text-lg">Laster...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+          <span className="text-gray-400 text-sm">Laster...</span>
+        </div>
       </div>
     );
   }
@@ -43,7 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -56,7 +57,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <ChannelSidebar
           channels={channels}
-          boards={boards}
           profile={profile}
           onSignOut={signOut}
           onClose={() => setSidebarOpen(false)}
@@ -66,33 +66,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 p-1 -ml-1"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Holmestrand
-            </h1>
+            <h1 className="text-lg font-bold gradient-text">Holmestrand</h1>
           </div>
           <button
             onClick={toggle}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
             title={dark ? "Lyst modus" : "Mørkt modus"}
           >
             {dark ? (

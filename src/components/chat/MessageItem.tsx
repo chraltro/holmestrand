@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/lib/types";
+import { Message, POST_TAG_LABELS, POST_TAG_COLORS, PostTag } from "@/lib/types";
 import { useLightbox } from "@/components/ui/ImageLightbox";
 
 function formatTime(dateStr: string) {
@@ -176,6 +176,13 @@ export function MessageItem({
             </button>
           )}
         </div>
+
+        {/* Tag badge */}
+        {message.tag && (
+          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${POST_TAG_COLORS[message.tag as PostTag]}`}>
+            {POST_TAG_LABELS[message.tag as PostTag]}
+          </span>
+        )}
 
         {/* Text-only message (no files) */}
         {message.content && allFiles.length === 0 && (
