@@ -76,6 +76,17 @@ export function FileGrid({
     );
   }
 
+  function handleTogglePin(messageId: string, isPinned: boolean) {
+    // Optimistically update local state
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.id === messageId ? { ...f, is_pinned: !isPinned } : f
+      )
+    );
+    // Also call the parent handler to update DB
+    onTogglePin?.(messageId, isPinned);
+  }
+
   const pinnedFiles = files.filter((f) => f.is_pinned);
   const otherFiles = files.filter((f) => !f.is_pinned);
 
@@ -94,7 +105,7 @@ export function FileGrid({
               <FileCard
                 key={file.id}
                 file={file}
-                onTogglePin={onTogglePin}
+                onTogglePin={handleTogglePin}
                 allImageUrls={allImageUrls}
               />
             ))}
@@ -107,7 +118,7 @@ export function FileGrid({
           <FileCard
             key={file.id}
             file={file}
-            onTogglePin={onTogglePin}
+            onTogglePin={handleTogglePin}
             allImageUrls={allImageUrls}
           />
         ))}

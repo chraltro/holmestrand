@@ -8,7 +8,7 @@ import { MessageInput } from "@/components/chat/MessageInput";
 import { FileGrid } from "@/components/files/FileGrid";
 import { BoardGrid } from "@/components/boards/BoardGrid";
 import { Channel } from "@/lib/types";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 type Tab = "chat" | "filer" | "tavle";
@@ -43,14 +43,14 @@ export default function ChannelPage() {
   const params = useParams();
   const slug = params.slug as string;
   const supabase = createClient();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [loading, setLoading] = useState(true);
 
   const isGenerelt = slug === "generelt";
 
-  const { messages, loading: messagesLoading, hasMore, loadMore } = useMessages(
+  const { messages, loading: messagesLoading, hasMore, loadMore, deleteMessage, togglePin } = useMessages(
     channel?.id ?? null
   );
 
@@ -69,16 +69,6 @@ export default function ChannelPage() {
     fetchChannel();
     setActiveTab("chat");
   }, [slug, supabase]);
-
-  const handleTogglePin = useCallback(
-    async (messageId: string, isPinned: boolean) => {
-      await supabase
-        .from("messages")
-        .update({ is_pinned: !isPinned })
-        .eq("id", messageId);
-    },
-    [supabase]
-  );
 
   if (loading) {
     return (
@@ -139,12 +129,15 @@ export default function ChannelPage() {
             loading={messagesLoading}
             hasMore={hasMore}
             onLoadMore={loadMore}
-            onTogglePin={handleTogglePin}
+            onTogglePin={togglePin}
+            onDelete={deleteMessage}
+            currentUserId={user?.id ?? null}
+            isAdmin={!!profile?.is_admin}
           />
           {user && <MessageInput channelId={channel.id} userId={user.id} showTagSelector={!isGenerelt} />}
         </>
       ) : activeTab === "filer" ? (
-        <FileGrid channelId={channel.id} onTogglePin={handleTogglePin} />
+        <FileGrid channelId={channel.id} onTogglePin={togglePin} />
       ) : (
         <BoardGrid channelId={channel.id} userId={user?.id ?? null} />
       )}

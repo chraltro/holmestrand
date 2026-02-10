@@ -94,13 +94,21 @@ export function MessageItem({
   message,
   groupedFiles,
   onTogglePin,
+  onDelete,
+  currentUserId,
+  isAdmin,
 }: {
   message: Message;
   groupedFiles?: FileInfo[];
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
+  onDelete?: (messageId: string) => void;
+  currentUserId?: string | null;
+  isAdmin?: boolean;
 }) {
   const { openLightbox } = useLightbox();
   const profile = message.profiles;
+
+  const canDelete = isAdmin || (currentUserId && message.user_id === currentUserId);
 
   // Collect all files for this message (main + grouped)
   const allFiles: FileInfo[] = [];
@@ -120,6 +128,12 @@ export function MessageItem({
   const imageFiles = allFiles.filter((f) => isImageType(f.type));
   const nonImageFiles = allFiles.filter((f) => !isImageType(f.type));
   const allImageUrls = imageFiles.map((f) => f.url);
+
+  function handleDelete() {
+    if (!onDelete) return;
+    if (!confirm("Er du sikker på at du vil slette denne meldingen?")) return;
+    onDelete(message.id);
+  }
 
   return (
     <div className="flex gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
@@ -142,39 +156,41 @@ export function MessageItem({
           <span className="text-xs text-gray-400 dark:text-gray-500">
             {formatTime(message.created_at)}
           </span>
-          {allFiles.length > 0 && onTogglePin && (
-            <button
-              onClick={() =>
-                onTogglePin(message.id, !!message.is_pinned)
-              }
-              className="opacity-0 group-hover:opacity-100 text-xs transition-all ml-auto"
-              title={message.is_pinned ? "Fjern fra festet" : "Fest fil"}
-            >
-              {message.is_pinned ? (
-                <svg
-                  className="w-4 h-4 text-blue-500"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+
+          {/* Action buttons - appear on hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-all ml-auto flex items-center gap-1">
+            {/* Pin button (for file messages) */}
+            {allFiles.length > 0 && onTogglePin && (
+              <button
+                onClick={() => onTogglePin(message.id, !!message.is_pinned)}
+                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                title={message.is_pinned ? "Fjern fra festet" : "Fest fil"}
+              >
+                {message.is_pinned ? (
+                  <svg className="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-gray-400 hover:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                  </svg>
+                )}
+              </button>
+            )}
+
+            {/* Delete button */}
+            {canDelete && onDelete && (
+              <button
+                onClick={handleDelete}
+                className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                title="Slett melding"
+              >
+                <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-              ) : (
-                <svg
-                  className="w-4 h-4 text-gray-400 hover:text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"
-                  />
-                </svg>
-              )}
-            </button>
-          )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tag badge */}
