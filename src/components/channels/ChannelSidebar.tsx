@@ -5,12 +5,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { DocumentList } from "@/components/sidebar/DocumentList";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 interface ChannelSidebarProps {
   channels: Channel[];
   profile: Profile | null;
   onSignOut: () => void;
   onClose?: () => void;
+  unreadCounts?: Record<string, number>;
+  markAsRead?: (channelId: string) => void;
+  isOnline?: (userId: string) => boolean;
+  onSearchOpen?: () => void;
 }
 
 export function ChannelSidebar({
@@ -18,9 +23,24 @@ export function ChannelSidebar({
   profile,
   onSignOut,
   onClose,
+  unreadCounts = {},
+  markAsRead,
+  isOnline,
+  onSearchOpen,
 }: ChannelSidebarProps) {
   const pathname = usePathname();
   const { dark, toggle } = useTheme();
+
+  // Mark channel as read when navigating to it
+  useEffect(() => {
+    if (!markAsRead) return;
+    const match = pathname.match(/^\/channel\/(.+)$/);
+    if (match) {
+      const slug = match[1];
+      const channel = channels.find((c) => c.slug === slug);
+      if (channel) markAsRead(channel.id);
+    }
+  }, [pathname, channels, markAsRead]);
 
   return (
     <div className="flex flex-col h-full bg-gray-900 text-white">
@@ -66,6 +86,22 @@ export function ChannelSidebar({
         </div>
       </div>
 
+      {/* Search button */}
+      {onSearchOpen && (
+        <div className="px-3 pt-3">
+          <button
+            onClick={onSearchOpen}
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 text-sm transition-colors border border-gray-700/50 hover:border-gray-600"
+          >
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span className="flex-1 text-left">Søk...</span>
+            <kbd className="hidden sm:inline text-[10px] bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+          </button>
+        </div>
+      )}
+
       {/* Channel list */}
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
         <div className="px-3 mb-2">
@@ -75,6 +111,7 @@ export function ChannelSidebar({
         </div>
         {channels.map((channel) => {
           const isActive = pathname === `/channel/${channel.slug}`;
+          const unread = unreadCounts[channel.id] || 0;
           return (
             <Link
               key={channel.id}
@@ -83,11 +120,18 @@ export function ChannelSidebar({
               className={`flex items-center gap-2 mx-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
                 isActive
                   ? "bg-indigo-500/20 text-white border-l-2 border-indigo-400 ml-1.5"
+                  : unread > 0
+                  ? "text-white font-semibold hover:bg-white/5"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
               <span className={`text-sm ${isActive ? "text-indigo-400" : "text-gray-600"}`}>#</span>
-              {channel.name}
+              <span className="flex-1">{channel.name}</span>
+              {unread > 0 && !isActive && (
+                <span className="min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -119,17 +163,22 @@ export function ChannelSidebar({
 
       {/* User footer */}
       <div className="p-3 border-t border-gray-700/50 flex items-center gap-3">
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt={profile.display_name}
-            className="w-8 h-8 rounded-full ring-2 ring-indigo-500/30"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-white">
-            {(profile?.display_name || "?")[0].toUpperCase()}
-          </div>
-        )}
+        <div className="relative">
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={profile.display_name}
+              className="w-8 h-8 rounded-full ring-2 ring-indigo-500/30"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-white">
+              {(profile?.display_name || "?")[0].toUpperCase()}
+            </div>
+          )}
+          {profile && isOnline?.(profile.id) && (
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full" />
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">
             {profile?.display_name}

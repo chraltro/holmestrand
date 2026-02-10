@@ -1,6 +1,6 @@
 "use client";
 
-import { Message } from "@/lib/types";
+import { Message, Profile } from "@/lib/types";
 import { MessageItem } from "./MessageItem";
 import { useEffect, useRef, useMemo } from "react";
 
@@ -11,8 +11,12 @@ interface MessageListProps {
   onLoadMore: () => void;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
   onDelete?: (messageId: string) => void;
+  onEdit?: (messageId: string, content: string) => void;
+  onReply?: (message: Message) => void;
+  onReaction?: (messageId: string, emoji: string) => void;
   currentUserId: string | null;
   isAdmin: boolean;
+  allProfiles?: Profile[];
 }
 
 interface FileInfo {
@@ -70,8 +74,12 @@ export function MessageList({
   onLoadMore,
   onTogglePin,
   onDelete,
+  onEdit,
+  onReply,
+  onReaction,
   currentUserId,
   isAdmin,
+  allProfiles,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,8 +147,12 @@ export function MessageList({
             }
             onTogglePin={onTogglePin}
             onDelete={onDelete}
+            onEdit={onEdit}
+            onReply={onReply}
+            onReaction={onReaction}
             currentUserId={currentUserId}
             isAdmin={isAdmin}
+            allProfiles={allProfiles}
           />
         ))}
       </div>

@@ -7,7 +7,7 @@ import { MessageList } from "@/components/chat/MessageList";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { FileGrid } from "@/components/files/FileGrid";
 import { BoardGrid } from "@/components/boards/BoardGrid";
-import { Channel } from "@/lib/types";
+import { Channel, Message, Profile } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -47,11 +47,14 @@ export default function ChannelPage() {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [loading, setLoading] = useState(true);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
 
   const isGenerelt = slug === "generelt";
 
-  const { messages, loading: messagesLoading, hasMore, loadMore, deleteMessage, togglePin } = useMessages(
-    channel?.id ?? null
+  const { messages, loading: messagesLoading, hasMore, loadMore, deleteMessage, togglePin, editMessage, toggleReaction } = useMessages(
+    channel?.id ?? null,
+    user?.id ?? null
   );
 
   useEffect(() => {
@@ -69,6 +72,18 @@ export default function ChannelPage() {
     fetchChannel();
     setActiveTab("chat");
   }, [slug, supabase]);
+
+  // Fetch all profiles for @mention autocomplete
+  useEffect(() => {
+    async function fetchProfiles() {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, email, is_admin, is_approved, created_at")
+        .eq("is_approved", true);
+      if (data) setAllProfiles(data);
+    }
+    fetchProfiles();
+  }, [supabase]);
 
   if (loading) {
     return (
@@ -131,10 +146,23 @@ export default function ChannelPage() {
             onLoadMore={loadMore}
             onTogglePin={togglePin}
             onDelete={deleteMessage}
+            onEdit={editMessage}
+            onReply={(msg) => setReplyTo(msg)}
+            onReaction={toggleReaction}
             currentUserId={user?.id ?? null}
             isAdmin={!!profile?.is_admin}
+            allProfiles={allProfiles}
           />
-          {user && <MessageInput channelId={channel.id} userId={user.id} showTagSelector={!isGenerelt} />}
+          {user && (
+            <MessageInput
+              channelId={channel.id}
+              userId={user.id}
+              showTagSelector={!isGenerelt}
+              replyTo={replyTo}
+              onCancelReply={() => setReplyTo(null)}
+              profiles={allProfiles}
+            />
+          )}
         </>
       ) : activeTab === "filer" ? (
         <FileGrid channelId={channel.id} onTogglePin={togglePin} />

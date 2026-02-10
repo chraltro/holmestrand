@@ -3,17 +3,29 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useChannels } from "@/hooks/useChannels";
 import { useTheme } from "@/hooks/useTheme";
+import { usePresence } from "@/hooks/usePresence";
+import { useUnreadCounts } from "@/hooks/useUnreadCounts";
 import { ChannelSidebar } from "@/components/channels/ChannelSidebar";
 import { LightboxProvider } from "@/components/ui/ImageLightbox";
+import { SearchModal } from "@/components/ui/SearchModal";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { channels, loading: channelsLoading } = useChannels();
   const { dark, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const router = useRouter();
+
+  const channelIds = useMemo(() => channels.map((c) => c.id), [channels]);
+  const { unreadCounts, markAsRead } = useUnreadCounts(user?.id ?? null, channelIds);
+  const { isOnline } = usePresence(
+    user?.id ?? null,
+    profile?.display_name ?? "",
+    profile?.avatar_url ?? ""
+  );
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -23,6 +35,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push("/");
     }
   }, [authLoading, user, profile, router]);
+
+  // Cmd+K / Ctrl+K to open search
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setSearchOpen((prev) => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   if (authLoading || channelsLoading) {
     return (
@@ -60,6 +85,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           profile={profile}
           onSignOut={signOut}
           onClose={() => setSidebarOpen(false)}
+          unreadCounts={unreadCounts}
+          markAsRead={markAsRead}
+          isOnline={isOnline}
+          onSearchOpen={() => setSearchOpen(true)}
         />
       </div>
 
@@ -78,25 +107,39 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
             <h1 className="text-lg font-bold gradient-text">Holmestrand</h1>
           </div>
-          <button
-            onClick={toggle}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-            title={dark ? "Lyst modus" : "Mørkt modus"}
-          >
-            {dark ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              title="Søk (⌘K)"
+            >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+            </button>
+            <button
+              onClick={toggle}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              title={dark ? "Lyst modus" : "Mørkt modus"}
+            >
+              {dark ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         <LightboxProvider>{children}</LightboxProvider>
       </div>
+
+      {/* Search modal */}
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

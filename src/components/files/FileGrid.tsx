@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { Message } from "@/lib/types";
 import { useLightbox } from "@/components/ui/ImageLightbox";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 
 function isImageType(fileType: string | null): boolean {
   if (!fileType) return false;
@@ -34,6 +34,8 @@ export function FileGrid({
   const [files, setFiles] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const { openLightbox } = useLightbox();
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchFiles() {
@@ -59,6 +61,41 @@ export function FileGrid({
         .map((f) => f.file_url!),
     [files]
   );
+
+  const handleDragStart = useCallback((id: string) => {
+    setDraggedId(id);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    setDragOverId(id);
+  }, []);
+
+  const handleDrop = useCallback((targetId: string) => {
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      setDragOverId(null);
+      return;
+    }
+    setFiles((prev) => {
+      const pinned = prev.filter((f) => f.is_pinned);
+      const other = prev.filter((f) => !f.is_pinned);
+      const fromIdx = pinned.findIndex((f) => f.id === draggedId);
+      const toIdx = pinned.findIndex((f) => f.id === targetId);
+      if (fromIdx < 0 || toIdx < 0) return prev;
+      const reordered = [...pinned];
+      const [moved] = reordered.splice(fromIdx, 1);
+      reordered.splice(toIdx, 0, moved);
+      return [...reordered, ...other];
+    });
+    setDraggedId(null);
+    setDragOverId(null);
+  }, [draggedId]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedId(null);
+    setDragOverId(null);
+  }, []);
 
   if (loading) {
     return (
@@ -99,6 +136,7 @@ export function FileGrid({
               <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
             </svg>
             Festede filer
+            {pinnedFiles.length > 1 && <span className="text-[10px] text-gray-400 font-normal ml-1">(dra for å endre rekkefølge)</span>}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {pinnedFiles.map((file) => (
@@ -107,6 +145,13 @@ export function FileGrid({
                 file={file}
                 onTogglePin={handleTogglePin}
                 allImageUrls={allImageUrls}
+                draggable
+                isDragging={draggedId === file.id}
+                isDragOver={dragOverId === file.id}
+                onDragStart={() => handleDragStart(file.id)}
+                onDragOver={(e) => handleDragOver(e, file.id)}
+                onDrop={() => handleDrop(file.id)}
+                onDragEnd={handleDragEnd}
               />
             ))}
           </div>
@@ -131,10 +176,24 @@ function FileCard({
   file,
   onTogglePin,
   allImageUrls,
+  draggable,
+  isDragging,
+  isDragOver,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: {
   file: Message;
   onTogglePin?: (messageId: string, isPinned: boolean) => void;
   allImageUrls: string[];
+  draggable?: boolean;
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: () => void;
+  onDragEnd?: () => void;
 }) {
   const { openLightbox } = useLightbox();
   const isImage = isImageType(file.file_type);
@@ -148,7 +207,18 @@ function FileCard({
   }
 
   return (
-    <div className="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+    <div
+      className={`group relative bg-white dark:bg-gray-900 rounded-lg border overflow-hidden hover:shadow-md transition-all ${
+        isDragOver ? "border-indigo-400 ring-2 ring-indigo-400/30 scale-[1.02]" :
+        isDragging ? "opacity-50 border-gray-300 dark:border-gray-600" :
+        "border-gray-200 dark:border-gray-700"
+      } ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+    >
       {isImage ? (
         <button
           onClick={handleClick}

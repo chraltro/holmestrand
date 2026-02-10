@@ -7,9 +7,10 @@ import {
   useCallback,
   useEffect,
 } from "react";
+import { ImageAnnotator } from "./ImageAnnotator";
 
 interface LightboxContextType {
-  openLightbox: (images: string[], startIndex?: number) => void;
+  openLightbox: (images: string[], startIndex?: number, meta?: { channelId?: string; userId?: string }) => void;
 }
 
 const LightboxContext = createContext<LightboxContextType>({
@@ -24,11 +25,15 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
   const [images, setImages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [annotating, setAnnotating] = useState(false);
+  const [meta, setMeta] = useState<{ channelId?: string; userId?: string }>({});
 
-  const openLightbox = useCallback((imgs: string[], startIndex = 0) => {
+  const openLightbox = useCallback((imgs: string[], startIndex = 0, m?: { channelId?: string; userId?: string }) => {
     setImages(imgs);
     setCurrentIndex(startIndex);
     setIsOpen(true);
+    setAnnotating(false);
+    if (m) setMeta(m);
   }, []);
 
   useEffect(() => {
@@ -37,6 +42,7 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
     document.body.style.overflow = "hidden";
 
     const handleKey = (e: KeyboardEvent) => {
+      if (annotating) return;
       if (e.key === "Escape") setIsOpen(false);
       if (e.key === "ArrowLeft")
         setCurrentIndex((i) => Math.max(0, i - 1));
@@ -49,12 +55,12 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = prev;
     };
-  }, [isOpen, images.length]);
+  }, [isOpen, images.length, annotating]);
 
   return (
     <LightboxContext.Provider value={{ openLightbox }}>
       {children}
-      {isOpen && (
+      {isOpen && !annotating && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setIsOpen(false)}
@@ -78,6 +84,20 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
               />
             </svg>
           </button>
+
+          {/* Annotate button */}
+          {meta.channelId && meta.userId && (
+            <button
+              className="absolute top-4 right-16 text-white/70 hover:text-white z-10 p-2 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+              onClick={(e) => { e.stopPropagation(); setAnnotating(true); }}
+              title="Tegn på bildet"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span className="text-sm font-medium">Tegn</span>
+            </button>
+          )}
 
           {/* Image */}
           <img
@@ -145,6 +165,17 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Annotator overlay */}
+      {isOpen && annotating && meta.channelId && meta.userId && (
+        <ImageAnnotator
+          imageUrl={images[currentIndex]}
+          channelId={meta.channelId}
+          userId={meta.userId}
+          onClose={() => setAnnotating(false)}
+          onSaved={() => { setAnnotating(false); setIsOpen(false); }}
+        />
       )}
     </LightboxContext.Provider>
   );
