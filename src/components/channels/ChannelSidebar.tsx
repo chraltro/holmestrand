@@ -107,7 +107,11 @@ export function ChannelSidebar({
             Kanaler
           </span>
         </div>
-        {channels.map((channel) => {
+        {[...channels].sort((a, b) => {
+          if (a.slug === "generelt") return -1;
+          if (b.slug === "generelt") return 1;
+          return a.name.localeCompare(b.name, "nb");
+        }).map((channel) => {
           const isActive = pathname === `/channel/${channel.slug}`;
           const unread = unreadCounts[channel.id] || 0;
           return (
