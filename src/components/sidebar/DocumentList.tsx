@@ -4,6 +4,16 @@ import { createClient } from "@/lib/supabase/client";
 import { Document } from "@/lib/types";
 import { useEffect, useState } from "react";
 
+function getDocEmoji(name: string, fileType: string | null): string {
+  const lower = name.toLowerCase();
+  if (lower.includes("plantegning") || lower.includes("tegning")) return "📐";
+  if (lower.includes("tilstand")) return "🔍";
+  if (lower.includes("budsjett") || lower.includes("kostnad")) return "💰";
+  if (lower.includes("kontrakt") || lower.includes("avtale")) return "📝";
+  if (fileType === "application/pdf") return "📄";
+  return "📄";
+}
+
 export function DocumentList() {
   const supabase = createClient();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -26,7 +36,7 @@ export function DocumentList() {
   return (
     <div className="py-3">
       <div className="px-3 mb-2">
-        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+        <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
           Dokumenter
         </span>
       </div>
@@ -36,22 +46,12 @@ export function DocumentList() {
           href={doc.file_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 mx-2 px-3 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--surface-glass-hover)]"
-          style={{ color: "var(--text-muted)" }}
+          className="flex items-center gap-2.5 mx-2 px-3.5 py-2.5 rounded-[10px] text-sm transition-colors hover:bg-[var(--surface-glass-hover)]"
+          style={{ color: "var(--text-secondary)" }}
         >
-          <svg
-            className="w-4 h-4 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-            />
-          </svg>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0" style={{ background: "rgba(232, 168, 124, 0.1)", border: "1px solid rgba(232, 168, 124, 0.15)" }}>
+            {getDocEmoji(doc.name, doc.file_type)}
+          </div>
           <span className="truncate">{doc.name}</span>
         </a>
       ))}

@@ -44,15 +44,13 @@ export function ChannelSidebar({
   return (
     <div className="flex flex-col h-full glass-solid" style={{ background: "var(--bg-secondary)" }}>
       {/* Header */}
-      <div className="p-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+      <div className="px-5 pt-7 pb-2" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center" style={{ boxShadow: "0 4px 12px rgba(245,158,11,0.25)" }}>
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
+          <div className="flex items-center gap-3">
+            <div className="w-[42px] h-[42px] rounded-xl gradient-primary flex items-center justify-center text-xl" style={{ boxShadow: "0 4px 20px rgba(232, 168, 124, 0.3)" }}>
+              🏠
             </div>
-            <h1 className="text-lg font-display font-bold gradient-text">Huset</h1>
+            <span className="text-[28px] font-display font-bold" style={{ letterSpacing: "-0.5px", color: "var(--text-primary)" }}>Huset</span>
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -80,6 +78,9 @@ export function ChannelSidebar({
             )}
           </div>
         </div>
+        <div className="text-[12px] uppercase tracking-[1.5px] mt-1 pl-[54px]" style={{ color: "var(--text-muted)" }}>
+          Holmestrand
+        </div>
       </div>
 
       {/* Search */}
@@ -102,7 +103,7 @@ export function ChannelSidebar({
       {/* Channel list */}
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
         <div className="px-3 mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+          <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
             Kanaler
           </span>
         </div>
@@ -114,23 +115,27 @@ export function ChannelSidebar({
               key={channel.id}
               href={`/channel/${channel.slug}`}
               onClick={onClose}
-              className={`flex items-center gap-2 mx-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
+              className={`flex items-center gap-2.5 mx-2 px-3.5 py-2.5 rounded-[10px] text-sm transition-all duration-250 ${
                 isActive
-                  ? "glass border-l-2"
+                  ? "font-medium"
                   : unread > 0
                   ? "font-semibold"
-                  : ""
+                  : "font-normal"
               }`}
               style={
                 isActive
-                  ? { borderColor: "var(--accent-amber)", color: "var(--text-primary)", marginLeft: "6px" }
+                  ? { background: "linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(212, 114, 106, 0.15))", border: "1px solid rgba(232, 168, 124, 0.2)", color: "var(--text-primary)" }
                   : { color: unread > 0 ? "var(--text-primary)" : "var(--text-secondary)" }
               }
             >
-              <span className="text-sm" style={{ color: isActive ? "var(--accent-amber)" : "var(--text-muted)" }}>#</span>
+              {channel.emoji ? (
+                <span className="text-base w-[18px] text-center">{channel.emoji}</span>
+              ) : (
+                <span className="font-display text-base font-light w-[18px] text-center" style={{ color: "var(--accent-amber)", opacity: isActive ? 1 : 0.7 }}>#</span>
+              )}
               <span className="flex-1">{channel.name}</span>
               {unread > 0 && !isActive && (
-                <span className="min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full gradient-primary text-white text-[10px] font-bold">
+                <span className="min-w-[18px] h-[18px] flex items-center justify-center px-[7px] rounded-[10px] text-white text-[10px] font-medium" style={{ background: "var(--accent-rose)" }}>
                   {unread > 99 ? "99+" : unread}
                 </span>
               )}
@@ -165,18 +170,18 @@ export function ChannelSidebar({
       <div className="p-3 flex items-center gap-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <div className="relative">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt={profile.display_name} className="w-8 h-8 rounded-full avatar-ring" />
+            <img src={profile.avatar_url} alt={profile.display_name} className="w-9 h-9 rounded-[10px]" />
           ) : (
-            <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-xs font-bold text-white">
+            <div className="w-9 h-9 rounded-[10px] avatar-gradient flex items-center justify-center font-display font-bold text-sm" style={{ color: "var(--bg-primary)" }}>
               {(profile?.display_name || "?")[0].toUpperCase()}
             </div>
           )}
-          {profile && isOnline?.(profile.id) && (
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 rounded-full" style={{ borderColor: "var(--bg-secondary)" }} />
-          )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{profile?.display_name}</p>
+          <p className="text-[13px] font-medium truncate" style={{ color: "var(--text-primary)" }}>{profile?.display_name}</p>
+          {profile && isOnline?.(profile.id) && (
+            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}><span className="inline-block w-2 h-2 rounded-full mr-0.5" style={{ background: "#6BCB77", boxShadow: "0 0 8px rgba(107, 203, 119, 0.5)" }} /> Online</p>
+          )}
         </div>
         <button
           onClick={onSignOut}
