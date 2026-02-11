@@ -12,6 +12,7 @@ export interface Channel {
   id: string;
   name: string;
   slug: string;
+  emoji: string | null;
   created_by: string | null;
   created_at: string;
 }

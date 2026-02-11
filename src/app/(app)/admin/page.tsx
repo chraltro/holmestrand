@@ -15,6 +15,7 @@ export default function AdminPage() {
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [newChannelName, setNewChannelName] = useState("");
+  const [newChannelEmoji, setNewChannelEmoji] = useState("");
   const [newInviteCode, setNewInviteCode] = useState("");
   const [newDocName, setNewDocName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,7 @@ export default function AdminPage() {
 
     const { data, error } = await supabase
       .from("channels")
-      .insert({ name, slug, created_by: profile!.id })
+      .insert({ name, slug, emoji: newChannelEmoji.trim() || null, created_by: profile!.id })
       .select()
       .single();
 
@@ -70,6 +71,13 @@ export default function AdminPage() {
 
     if (data) setChannels((prev) => [...prev, data]);
     setNewChannelName("");
+    setNewChannelEmoji("");
+  }
+
+  async function updateChannelEmoji(id: string, emoji: string) {
+    const emojiVal = emoji.trim() || null;
+    await supabase.from("channels").update({ emoji: emojiVal }).eq("id", id);
+    setChannels((prev) => prev.map((c) => (c.id === id ? { ...c, emoji: emojiVal } : c)));
   }
 
   async function deleteChannel(id: string) {
@@ -175,19 +183,37 @@ export default function AdminPage() {
           <h2 className="text-lg font-display font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Kanaler</h2>
           <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>Hver kanal representerer et rom. Kanaler (unntatt Generelt) far automatisk en Tavle-fane for inspirasjon og forslag.</p>
           <form onSubmit={createChannel} className="flex gap-2 mb-4">
+            <input type="text" value={newChannelEmoji} onChange={(e) => setNewChannelEmoji(e.target.value)} placeholder="🏠"
+              className="w-12 rounded-xl px-2 py-2 text-center text-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
+              style={{ background: "var(--surface-glass)", border: "1px solid var(--border-subtle)" }}
+              maxLength={4} />
             <input type="text" value={newChannelName} onChange={(e) => setNewChannelName(e.target.value)} placeholder="Ny kanal..."
               className="flex-1 rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
               style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
-            <button type="submit" disabled={!newChannelName.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100" style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>Opprett</button>
+            <button type="submit" disabled={!newChannelName.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100" style={{ boxShadow: "0 4px 12px rgba(232, 168, 124, 0.25)" }}>Opprett</button>
           </form>
           <div className="space-y-2">
             {channels.map((channel) => (
-              <div key={channel.id} className="flex items-center justify-between glass rounded-xl px-4 py-3">
-                <div>
-                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}><span className="text-amber-500">#</span> {channel.name}</span>
+              <div key={channel.id} className="flex items-center gap-3 glass rounded-xl px-4 py-3">
+                <input
+                  type="text"
+                  defaultValue={channel.emoji || ""}
+                  placeholder="#"
+                  className="w-10 h-10 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-amber-500 transition-shadow"
+                  style={{ background: "var(--surface-glass)", border: "1px solid var(--border-subtle)" }}
+                  maxLength={4}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val !== (channel.emoji || "")) {
+                      updateChannelEmoji(channel.id, val);
+                    }
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{channel.name}</span>
                   <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>/{channel.slug}</span>
                 </div>
-                <button onClick={() => deleteChannel(channel.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors">Slett</button>
+                <button onClick={() => deleteChannel(channel.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors flex-shrink-0">Slett</button>
               </div>
             ))}
           </div>

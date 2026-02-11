@@ -66,9 +66,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-[100dvh] flex overflow-hidden relative" style={{ background: "var(--bg-primary)" }}>
       {/* Animated background blobs */}
-      <div className="blob blob-amber w-[500px] h-[500px] -top-32 -left-32 animate-blob-1" />
-      <div className="blob blob-rose w-[400px] h-[400px] -bottom-24 -right-24 animate-blob-2" />
-      <div className="blob blob-warm w-[600px] h-[600px] top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 animate-blob-3" />
+      <div className="blob blob-rose w-[500px] h-[500px] -top-[100px] -left-[100px] animate-blob-1" />
+      <div className="blob blob-amber w-[400px] h-[400px] -bottom-[50px] -right-[50px] animate-blob-2" />
+      <div className="blob blob-purple w-[300px] h-[300px] top-1/2 left-[40%] animate-blob-3" />
 
       {/* Mobile overlay */}
       {sidebarOpen && (

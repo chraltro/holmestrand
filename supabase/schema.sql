@@ -19,6 +19,7 @@ create table public.channels (
   id uuid default gen_random_uuid() primary key,
   name text not null,
   slug text not null unique,
+  emoji text,
   created_by uuid references public.profiles(id),
   created_at timestamptz default now()
 );
@@ -79,6 +80,16 @@ create policy "Channels are viewable by approved users"
 create policy "Admins can create channels"
   on public.channels for insert
   with check (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = auth.uid()
+      and profiles.is_admin = true
+    )
+  );
+
+create policy "Admins can update channels"
+  on public.channels for update
+  using (
     exists (
       select 1 from public.profiles
       where profiles.id = auth.uid()
@@ -163,13 +174,13 @@ alter publication supabase_realtime add table messages;
 -- Seed default channels
 -- =============================================
 
-insert into public.channels (name, slug) values
-  ('Generelt', 'generelt'),
-  ('Kjøkken', 'kjokken'),
-  ('Stue', 'stue'),
-  ('Bad', 'bad'),
-  ('Hage', 'hage'),
-  ('Soverom', 'soverom');
+insert into public.channels (name, slug, emoji) values
+  ('Generelt', 'generelt', '💬'),
+  ('Kjøkken', 'kjokken', '🍳'),
+  ('Stue', 'stue', '🛋️'),
+  ('Bad', 'bad', '🛁'),
+  ('Hage', 'hage', '🌿'),
+  ('Soverom', 'soverom', '🛏️');
 
 -- =============================================
 -- Storage bucket for files

@@ -59,18 +59,16 @@ export default function Home() {
     <div className="min-h-[100dvh] flex items-center justify-center px-4 relative overflow-hidden" style={{ background: "var(--bg-primary)" }}>
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="blob blob-amber" style={{ width: 500, height: 500, top: "-10%", left: "-10%" }} />
-        <div className="blob blob-rose" style={{ width: 400, height: 400, bottom: "-10%", right: "-10%" }} />
-        <div className="blob blob-warm" style={{ width: 600, height: 600, top: "40%", left: "40%" }} />
+        <div className="blob blob-rose animate-blob-1" style={{ width: 500, height: 500, top: "-100px", left: "-100px" }} />
+        <div className="blob blob-amber animate-blob-2" style={{ width: 400, height: 400, bottom: "-50px", right: "-50px" }} />
+        <div className="blob blob-purple animate-blob-3" style={{ width: 300, height: 300, top: "50%", left: "40%" }} />
       </div>
 
       <div className="w-full max-w-sm relative z-10 animate-slide-up">
         <div className="text-center mb-8">
           {/* House icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-lg mb-4" style={{ boxShadow: "0 8px 24px rgba(245, 158, 11, 0.25)" }}>
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-lg mb-4 text-3xl" style={{ boxShadow: "0 8px 24px rgba(232, 168, 124, 0.3)" }}>
+            🏠
           </div>
           <h1 className="text-4xl font-display font-bold mb-2 gradient-text">
             Huset

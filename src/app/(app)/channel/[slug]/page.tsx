@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 
 type Tab = "chat" | "filer" | "tavle";
 
+
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "chat", label: "Chat", icon: "chat" },
   { key: "filer", label: "Filer", icon: "file" },
@@ -80,15 +81,18 @@ export default function ChannelPage() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="glass-solid px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-display font-bold" style={{ color: "var(--text-primary)" }}>
-            <span className="text-amber-500 mr-1">#</span>{channel.name}
-          </h2>
+          <div className="flex items-center gap-3">
+            {channel.emoji && <span className="text-xl">{channel.emoji}</span>}
+            <h2 className="text-xl font-display font-medium" style={{ color: "var(--text-primary)" }}>
+              {channel.name}
+            </h2>
+          </div>
         </div>
-        <div className="flex gap-1 mt-3 rounded-lg p-0.5" style={{ background: "var(--surface-glass)" }}>
+        <div className="flex gap-1 mt-3 rounded-[10px] p-[3px] glass">
           {visibleTabs.map((tab) => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex-1 justify-center ${activeTab === tab.key ? "glass shadow-sm" : ""}`}
-              style={{ color: activeTab === tab.key ? "var(--text-primary)" : "var(--text-muted)" }}>
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex-1 justify-center ${activeTab === tab.key ? "glass shadow-sm" : ""}`}
+              style={{ color: activeTab === tab.key ? "var(--accent-amber)" : "var(--text-muted)", letterSpacing: "0.5px" }}>
               <TabIcon icon={tab.icon} className="w-3.5 h-3.5" />{tab.label}
             </button>
           ))}
