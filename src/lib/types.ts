@@ -25,6 +25,7 @@ export interface Channel {
   slug: string;
   emoji: string | null;
   floor: Floor | null;
+  room_id: string | null;
   floor_plan_x: number | null;
   floor_plan_y: number | null;
   created_by: string | null;
