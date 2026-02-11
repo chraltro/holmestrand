@@ -73,7 +73,7 @@ export default function AdminPage() {
   }
 
   async function deleteChannel(id: string) {
-    if (!confirm("Er du sikker på at du vil slette denne kanalen? Alle meldinger vil bli slettet.")) return;
+    if (!confirm("Er du sikker pa at du vil slette denne kanalen? Alle meldinger vil bli slettet.")) return;
     await supabase.from("channels").delete().eq("id", id);
     setChannels((prev) => prev.filter((c) => c.id !== id));
   }
@@ -149,7 +149,7 @@ export default function AdminPage() {
   }
 
   async function deleteDocument(id: string) {
-    if (!confirm("Er du sikker på at du vil slette dette dokumentet?")) return;
+    if (!confirm("Er du sikker pa at du vil slette dette dokumentet?")) return;
     await supabase.from("documents").delete().eq("id", id);
     setDocuments((prev) => prev.filter((d) => d.id !== id));
   }
@@ -158,8 +158,8 @@ export default function AdminPage() {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <span className="text-gray-400 text-sm">Laster...</span>
+          <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>Laster...</span>
         </div>
       </div>
     );
@@ -168,22 +168,24 @@ export default function AdminPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-2xl mx-auto p-6 space-y-8">
-        <h1 className="text-2xl font-bold gradient-text">Admin</h1>
+        <h1 className="text-2xl font-display font-bold gradient-text">Admin</h1>
 
         {/* Channels */}
-        <section className="glass rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/30">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Kanaler</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Hver kanal representerer et rom. Kanaler (unntatt Generelt) får automatisk en Tavle-fane for inspirasjon og forslag.</p>
+        <section className="glass rounded-2xl p-5">
+          <h2 className="text-lg font-display font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Kanaler</h2>
+          <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>Hver kanal representerer et rom. Kanaler (unntatt Generelt) far automatisk en Tavle-fane for inspirasjon og forslag.</p>
           <form onSubmit={createChannel} className="flex gap-2 mb-4">
-            <input type="text" value={newChannelName} onChange={(e) => setNewChannelName(e.target.value)} placeholder="Ny kanal..." className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-base sm:text-sm bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" />
-            <button type="submit" disabled={!newChannelName.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100">Opprett</button>
+            <input type="text" value={newChannelName} onChange={(e) => setNewChannelName(e.target.value)} placeholder="Ny kanal..."
+              className="flex-1 rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
+              style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
+            <button type="submit" disabled={!newChannelName.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100" style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>Opprett</button>
           </form>
           <div className="space-y-2">
             {channels.map((channel) => (
-              <div key={channel.id} className="flex items-center justify-between bg-white/60 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/30 rounded-xl px-4 py-3">
+              <div key={channel.id} className="flex items-center justify-between glass rounded-xl px-4 py-3">
                 <div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100"># {channel.name}</span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">/{channel.slug}</span>
+                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}><span className="text-amber-500">#</span> {channel.name}</span>
+                  <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>/{channel.slug}</span>
                 </div>
                 <button onClick={() => deleteChannel(channel.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors">Slett</button>
               </div>
@@ -192,58 +194,62 @@ export default function AdminPage() {
         </section>
 
         {/* Invite codes */}
-        <section className="glass rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/30">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Invitasjonskoder</h2>
+        <section className="glass rounded-2xl p-5">
+          <h2 className="text-lg font-display font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Invitasjonskoder</h2>
           <form onSubmit={createInviteCode} className="flex gap-2 mb-4">
-            <input type="text" value={newInviteCode} onChange={(e) => setNewInviteCode(e.target.value)} placeholder="Ny kode..." className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-base sm:text-sm bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" />
-            <button type="submit" disabled={!newInviteCode.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100">Opprett</button>
+            <input type="text" value={newInviteCode} onChange={(e) => setNewInviteCode(e.target.value)} placeholder="Ny kode..."
+              className="flex-1 rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
+              style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
+            <button type="submit" disabled={!newInviteCode.trim()} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100" style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>Opprett</button>
           </form>
           <div className="space-y-2">
             {inviteCodes.map((code) => (
-              <div key={code.id} className="flex items-center justify-between bg-white/60 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/30 rounded-xl px-4 py-3">
+              <div key={code.id} className="flex items-center justify-between glass rounded-xl px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <code className="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg text-gray-900 dark:text-gray-100">{code.code}</code>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${code.is_active ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}>
+                  <code className="text-sm font-mono px-2 py-1 rounded-lg" style={{ background: "var(--surface-glass)", color: "var(--text-primary)" }}>{code.code}</code>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${code.is_active ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" : "text-gray-500"}`} style={!code.is_active ? { background: "var(--surface-glass)" } : {}}>
                     {code.is_active ? "Aktiv" : "Deaktivert"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => toggleInviteCode(code.id, code.is_active)} className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{code.is_active ? "Deaktiver" : "Aktiver"}</button>
+                  <button onClick={() => toggleInviteCode(code.id, code.is_active)} className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}>{code.is_active ? "Deaktiver" : "Aktiver"}</button>
                   <button onClick={() => deleteInviteCode(code.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors">Slett</button>
                 </div>
               </div>
             ))}
-            {inviteCodes.length === 0 && <p className="text-sm text-gray-400">Ingen invitasjonskoder opprettet ennå</p>}
+            {inviteCodes.length === 0 && <p className="text-sm" style={{ color: "var(--text-muted)" }}>Ingen invitasjonskoder opprettet enna</p>}
           </div>
         </section>
 
         {/* Documents */}
-        <section className="glass rounded-2xl p-5 border border-gray-200/50 dark:border-gray-700/30">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Dokumenter</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Last opp viktige dokumenter som vises i sidemenyen (f.eks. plantegning, salgsoppgave, tilstandsrapport).</p>
+        <section className="glass rounded-2xl p-5">
+          <h2 className="text-lg font-display font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Dokumenter</h2>
+          <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>Last opp viktige dokumenter som vises i sidemenyen (f.eks. plantegning, salgsoppgave, tilstandsrapport).</p>
           <div className="flex gap-2 mb-4">
-            <input type="text" value={newDocName} onChange={(e) => setNewDocName(e.target.value)} placeholder="Dokumentnavn..." className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-base sm:text-sm bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow" />
+            <input type="text" value={newDocName} onChange={(e) => setNewDocName(e.target.value)} placeholder="Dokumentnavn..."
+              className="flex-1 rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-shadow"
+              style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
             <input type="file" ref={docFileRef} onChange={uploadDocument} className="hidden" />
-            <button type="button" onClick={() => docFileRef.current?.click()} disabled={!newDocName.trim() || uploadingDoc} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100">
+            <button type="button" onClick={() => docFileRef.current?.click()} disabled={!newDocName.trim() || uploadingDoc} className="gradient-primary text-white rounded-xl px-4 py-2 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100" style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>
               {uploadingDoc ? "Laster opp..." : "Last opp"}
             </button>
           </div>
           <div className="space-y-2">
             {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between bg-white/60 dark:bg-gray-800/60 border border-gray-200/50 dark:border-gray-700/30 rounded-xl px-4 py-3">
+              <div key={doc.id} className="flex items-center justify-between glass rounded-xl px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                   <div className="min-w-0">
-                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 truncate block transition-colors">{doc.name}</a>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{doc.file_name}</span>
+                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium hover:text-amber-600 dark:hover:text-amber-400 truncate block transition-colors" style={{ color: "var(--text-primary)" }}>{doc.name}</a>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{doc.file_name}</span>
                   </div>
                 </div>
                 <button onClick={() => deleteDocument(doc.id)} className="text-sm text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-2">Slett</button>
               </div>
             ))}
-            {documents.length === 0 && <p className="text-sm text-gray-400">Ingen dokumenter lastet opp ennå</p>}
+            {documents.length === 0 && <p className="text-sm" style={{ color: "var(--text-muted)" }}>Ingen dokumenter lastet opp enna</p>}
           </div>
         </section>
       </div>

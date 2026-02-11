@@ -26,7 +26,7 @@ export function DocumentList() {
   return (
     <div className="py-3">
       <div className="px-3 mb-2">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
           Dokumenter
         </span>
       </div>
@@ -36,7 +36,8 @@ export function DocumentList() {
           href={doc.file_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 mx-2 px-3 py-1.5 rounded-md text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-2 mx-2 px-3 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--surface-glass-hover)]"
+          style={{ color: "var(--text-muted)" }}
         >
           <svg
             className="w-4 h-4 flex-shrink-0"

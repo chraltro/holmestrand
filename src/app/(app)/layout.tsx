@@ -36,7 +36,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [authLoading, user, profile, router]);
 
-  // Cmd+K / Ctrl+K to open search
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
@@ -51,10 +50,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (authLoading || channelsLoading) {
     return (
-      <div className="h-[100dvh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="h-[100dvh] flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <span className="text-gray-400 text-sm">Laster...</span>
+          <div className="w-10 h-10 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+          <span style={{ color: "var(--text-muted)" }} className="text-sm">Laster...</span>
         </div>
       </div>
     );
@@ -65,11 +64,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="h-[100dvh] flex overflow-hidden">
+    <div className="h-[100dvh] flex overflow-hidden relative" style={{ background: "var(--bg-primary)" }}>
+      {/* Animated background blobs */}
+      <div className="blob blob-amber w-[500px] h-[500px] -top-32 -left-32 animate-blob-1" />
+      <div className="blob blob-rose w-[400px] h-[400px] -bottom-24 -right-24 animate-blob-2" />
+      <div className="blob blob-warm w-[600px] h-[600px] top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 animate-blob-3" />
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -93,25 +97,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Mobile header */}
-        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 glass-solid">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 p-1 -ml-1"
+              className="p-1 -ml-1 transition-colors"
+              style={{ color: "var(--text-secondary)" }}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-lg font-bold gradient-text">Holmestrand</h1>
+            <h1 className="text-lg font-display font-bold gradient-text">Huset</h1>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(true)}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              title="Søk (⌘K)"
+              className="p-1.5 rounded-lg transition-all hover:bg-[var(--surface-glass-hover)]"
+              style={{ color: "var(--text-muted)" }}
+              title="Sok"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -119,8 +125,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
             <button
               onClick={toggle}
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              title={dark ? "Lyst modus" : "Mørkt modus"}
+              className="p-1.5 rounded-lg transition-all hover:bg-[var(--surface-glass-hover)]"
+              style={{ color: "var(--text-muted)" }}
             >
               {dark ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,7 +144,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <LightboxProvider>{children}</LightboxProvider>
       </div>
 
-      {/* Search modal */}
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );

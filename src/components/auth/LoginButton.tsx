@@ -16,12 +16,13 @@ export function LoginButton() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-        Logg inn for å bli med i chatten
+      <p className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+        Logg inn for a bli med i chatten
       </p>
       <button
         onClick={handleLogin}
-        className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/80 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+        className="w-full flex items-center justify-center gap-3 glass rounded-xl px-4 py-3 text-sm font-medium hover:shadow-warm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+        style={{ color: "var(--text-primary)", borderColor: "var(--border-subtle)" }}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />

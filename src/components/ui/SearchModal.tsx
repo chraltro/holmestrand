@@ -21,7 +21,7 @@ function highlightMatch(text: string, query: string) {
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? (
-      <mark key={i} className="bg-indigo-200 dark:bg-indigo-900/60 text-indigo-900 dark:text-indigo-200 rounded px-0.5">{part}</mark>
+      <mark key={i} className="bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 rounded px-0.5">{part}</mark>
     ) : part
   );
 }
@@ -92,10 +92,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start justify-center pt-[10vh] px-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg animate-slide-up border border-gray-200 dark:border-gray-700/50" onClick={(e) => e.stopPropagation()}>
+      <div className="glass-solid rounded-2xl shadow-warm w-full max-w-lg animate-slide-up" style={{ borderColor: "var(--border-subtle)" }} onClick={(e) => e.stopPropagation()}>
         {/* Search input */}
-        <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700/50">
-          <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-3 p-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+          <svg className="w-5 h-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -103,22 +103,23 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="Søk i meldinger..."
-            className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none text-base"
+            placeholder="Sok i meldinger..."
+            className="flex-1 bg-transparent focus:outline-none text-base"
+            style={{ color: "var(--text-primary)" }}
           />
-          <kbd className="hidden sm:inline-flex text-[10px] font-mono text-gray-400 border border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5">ESC</kbd>
+          <kbd className="hidden sm:inline-flex text-[10px] font-mono rounded px-1.5 py-0.5" style={{ color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}>ESC</kbd>
         </div>
 
         {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto">
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+              <div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
             </div>
           )}
 
           {!loading && query.trim().length >= 2 && results.length === 0 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
+            <div className="text-center py-8 text-sm" style={{ color: "var(--text-muted)" }}>
               Ingen resultater for &quot;{query}&quot;
             </div>
           )}
@@ -129,27 +130,27 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <button
                   key={result.id}
                   onClick={() => navigateTo(result)}
-                  className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="w-full text-left px-4 py-3 transition-colors hover:bg-[var(--surface-glass-hover)]"
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-indigo-500">#{result.channel_name}</span>
-                    <span className="text-xs text-gray-400">{formatDate(result.created_at)}</span>
+                    <span className="text-xs font-medium text-amber-500">#{result.channel_name}</span>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatDate(result.created_at)}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     {result.profiles?.avatar_url ? (
-                      <img src={result.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full flex-shrink-0 mt-0.5" />
+                      <img src={result.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full flex-shrink-0 mt-0.5 avatar-ring" />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-bold">
+                      <div className="w-6 h-6 rounded-full avatar-gradient flex-shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-bold text-white">
                         {(result.profiles?.display_name || "?")[0].toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{result.profiles?.display_name}</span>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                      <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{result.profiles?.display_name}</span>
+                      <p className="text-sm line-clamp-2" style={{ color: "var(--text-primary)" }}>
                         {highlightMatch(result.content, query)}
                       </p>
                       {result.file_name && (
-                        <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <span className="text-xs flex items-center gap-1 mt-0.5" style={{ color: "var(--text-muted)" }}>
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                           {result.file_name}
                         </span>
@@ -162,8 +163,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           )}
 
           {!loading && query.trim().length < 2 && (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              Skriv minst 2 tegn for å søke
+            <div className="text-center py-8 text-sm" style={{ color: "var(--text-muted)" }}>
+              Skriv minst 2 tegn for a soke
             </div>
           )}
         </div>
