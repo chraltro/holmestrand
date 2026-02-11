@@ -81,8 +81,8 @@ export function BoardGrid({
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <span className="text-gray-400 text-sm">Laster tavle...</span>
+          <div className="w-8 h-8 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+          <span className="text-sm" style={{ color: "var(--text-muted)" }}>Laster tavle...</span>
         </div>
       </div>
     );
@@ -91,15 +91,16 @@ export function BoardGrid({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Filter + add */}
-      <div className="px-4 py-3 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800">
+      <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex gap-1.5 flex-1 overflow-x-auto">
           <button
             onClick={() => setActiveFilter("alle")}
             className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
               activeFilter === "alle"
                 ? "gradient-primary text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                : "hover:bg-[var(--surface-glass-hover)]"
             }`}
+            style={activeFilter !== "alle" ? { background: "var(--surface-glass)", color: "var(--text-secondary)" } : {}}
           >
             Alle ({posts.length})
           </button>
@@ -110,8 +111,9 @@ export function BoardGrid({
                 key={tag}
                 onClick={() => setActiveFilter(tag)}
                 className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                  activeFilter === tag ? POST_TAG_COLORS[tag] : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  activeFilter === tag ? POST_TAG_COLORS[tag] : "hover:bg-[var(--surface-glass-hover)]"
                 }`}
+                style={activeFilter !== tag ? { background: "var(--surface-glass)", color: "var(--text-secondary)" } : {}}
               >
                 {POST_TAG_LABELS[tag].split(" ")[0]} ({count})
               </button>
@@ -121,7 +123,8 @@ export function BoardGrid({
         {userId && (
           <button
             onClick={() => setShowCreate(true)}
-            className="gradient-primary text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-1 flex-shrink-0"
+            className="gradient-primary text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-1 flex-shrink-0"
+            style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -135,20 +138,20 @@ export function BoardGrid({
       <div className="flex-1 overflow-y-auto p-4">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-              <svg className="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: "var(--surface-glass)" }}>
+              <svg className="w-10 h-10" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-gray-400 text-sm mb-1">Ingen innlegg ennå</p>
-            <p className="text-gray-400/60 text-xs">Trykk &quot;Legg til&quot; for å dele inspirasjon!</p>
+            <p className="text-sm mb-1" style={{ color: "var(--text-muted)" }}>Ingen innlegg enna</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)", opacity: 0.6 }}>Trykk &quot;Legg til&quot; for a dele inspirasjon!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {filtered.map((post, idx) => (
               <div
                 key={post.id}
-                className="animate-fade-in group bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+                className="animate-fade-in group glass rounded-xl overflow-hidden hover:shadow-warm hover:scale-[1.02] transition-all duration-200"
                 style={{ animationDelay: `${Math.min(idx, 12) * 30}ms` }}
               >
                 <button
@@ -158,7 +161,7 @@ export function BoardGrid({
                   }}
                   className="w-full focus:outline-none"
                 >
-                  <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
+                  <div className="aspect-square relative" style={{ background: "var(--surface-glass)" }}>
                     <img src={post.file_url!} alt={post.content} className="w-full h-full object-cover" />
                     <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${POST_TAG_COLORS[post.tag!]}`}>
                       {POST_TAG_LABELS[post.tag!]}
@@ -167,23 +170,24 @@ export function BoardGrid({
                 </button>
                 <div className="p-2.5">
                   {post.content && post.content !== post.file_name && (
-                    <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 mb-1.5">{post.content}</p>
+                    <p className="text-xs line-clamp-2 mb-1.5" style={{ color: "var(--text-primary)" }}>{post.content}</p>
                   )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {post.profiles?.avatar_url ? (
-                        <img src={post.profiles.avatar_url} alt="" className="w-5 h-5 rounded-full" />
+                        <img src={post.profiles.avatar_url} alt="" className="w-5 h-5 rounded-full avatar-ring" />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold">
+                        <div className="w-5 h-5 rounded-full avatar-gradient flex items-center justify-center text-[9px] font-bold text-white">
                           {(post.profiles?.display_name || "?")[0].toUpperCase()}
                         </div>
                       )}
-                      <span className="text-[11px] text-gray-400 truncate">{post.profiles?.display_name}</span>
+                      <span className="text-[11px] truncate" style={{ color: "var(--text-muted)" }}>{post.profiles?.display_name}</span>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => setDetailPost(post)}
-                        className="text-gray-400 hover:text-indigo-500 transition-colors"
+                        className="transition-colors hover:text-amber-500"
+                        style={{ color: "var(--text-muted)" }}
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -191,7 +195,8 @@ export function BoardGrid({
                       </button>
                       <button
                         onClick={() => handleVote(post.id, !!post.user_has_voted)}
-                        className={`flex items-center gap-0.5 transition-all ${post.user_has_voted ? "text-indigo-500 scale-110" : "text-gray-400 hover:text-indigo-500"}`}
+                        className={`flex items-center gap-0.5 transition-all ${post.user_has_voted ? "text-amber-500 scale-110" : "hover:text-amber-500"}`}
+                        style={!post.user_has_voted ? { color: "var(--text-muted)" } : {}}
                       >
                         <svg className="w-4 h-4" fill={post.user_has_voted ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
@@ -261,10 +266,10 @@ function CreatePostModal({ channelId, userId, onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700/50 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Nytt innlegg</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+      <div className="glass-solid rounded-2xl shadow-warm max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+          <h3 className="text-lg font-display font-bold" style={{ color: "var(--text-primary)" }}>Nytt innlegg</h3>
+          <button onClick={onClose} className="p-1 rounded-lg transition-colors hover:bg-[var(--surface-glass-hover)]" style={{ color: "var(--text-muted)" }}>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -273,31 +278,34 @@ function CreatePostModal({ channelId, userId, onClose, onCreated }: {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <input type="file" ref={fileRef} onChange={handleFileSelect} accept="image/*" className="hidden" />
           {preview ? (
-            <button type="button" onClick={() => fileRef.current?.click()} className="w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:opacity-90 transition-opacity">
-              <img src={preview} alt="Forhåndsvisning" className="w-full max-h-64 object-cover" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="w-full rounded-xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500 hover:opacity-90 transition-opacity" style={{ border: "1px solid var(--border-subtle)" }}>
+              <img src={preview} alt="Forhandsvisning" className="w-full max-h-64 object-cover" />
             </button>
           ) : (
-            <button type="button" onClick={() => fileRef.current?.click()} className="w-full aspect-video bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center gap-2 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all focus:outline-none">
-              <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button type="button" onClick={() => fileRef.current?.click()} className="w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 hover:border-amber-400 transition-all focus:outline-none" style={{ background: "var(--surface-glass)", borderColor: "var(--border-subtle)" }}>
+              <svg className="w-10 h-10" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="text-sm text-gray-500">Velg bilde</span>
+              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Velg bilde</span>
             </button>
           )}
           <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Bildetekst (valgfritt)..." rows={2}
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-base sm:text-sm resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full rounded-xl px-3 py-2 text-base sm:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Kategori</label>
             <div className="grid grid-cols-2 gap-2">
               {ALL_TAGS.map((t) => (
                 <button key={t} type="button" onClick={() => setTag(t)}
-                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${tag === t ? `${POST_TAG_COLORS[t]} border-current shadow-sm` : "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${tag === t ? `${POST_TAG_COLORS[t]} border-current shadow-sm` : "border-transparent hover:bg-[var(--surface-glass-hover)]"}`}
+                  style={tag !== t ? { background: "var(--surface-glass)", color: "var(--text-secondary)" } : {}}
                 >{POST_TAG_LABELS[t]}</button>
               ))}
             </div>
           </div>
           <button type="submit" disabled={!file || uploading}
-            className="w-full gradient-primary text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100">
+            className="w-full gradient-primary text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100"
+            style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>
             {uploading ? "Laster opp..." : "Publiser"}
           </button>
         </form>
@@ -351,27 +359,28 @@ function PostDetailModal({ post, userId, onClose, onVote }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
+      <div className="glass-solid rounded-2xl shadow-warm max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
         <button onClick={() => openLightbox([post.file_url!])} className="w-full focus:outline-none flex-shrink-0">
           <img src={post.file_url!} alt={post.content} className="w-full max-h-72 object-cover" />
         </button>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700/50 flex-shrink-0">
+        <div className="p-4 flex-shrink-0" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <div className="flex items-center gap-2 mb-2">
             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${POST_TAG_COLORS[post.tag!]}`}>{POST_TAG_LABELS[post.tag!]}</span>
-            <span className="text-xs text-gray-400">{formatTime(post.created_at)}</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatTime(post.created_at)}</span>
           </div>
           {post.content && post.content !== post.file_name && (
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{post.content}</p>
+            <p className="text-sm mb-2" style={{ color: "var(--text-primary)" }}>{post.content}</p>
           )}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full" /> : (
-                <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-xs font-bold">{(post.profiles?.display_name || "?")[0].toUpperCase()}</div>
+              {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full avatar-ring" /> : (
+                <div className="w-6 h-6 rounded-full avatar-gradient flex items-center justify-center text-xs font-bold text-white">{(post.profiles?.display_name || "?")[0].toUpperCase()}</div>
               )}
-              <span className="text-sm text-gray-600 dark:text-gray-400">{post.profiles?.display_name}</span>
+              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{post.profiles?.display_name}</span>
             </div>
             <button onClick={() => onVote(post.id, !!post.user_has_voted)}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-all ${post.user_has_voted ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"}`}>
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-all ${post.user_has_voted ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "hover:bg-[var(--surface-glass-hover)]"}`}
+              style={!post.user_has_voted ? { background: "var(--surface-glass)", color: "var(--text-secondary)" } : {}}>
               <svg className="w-4 h-4" fill={post.user_has_voted ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
               </svg>
@@ -381,22 +390,22 @@ function PostDetailModal({ post, userId, onClose, onVote }: {
         </div>
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {loadingComments ? (
-            <div className="text-center text-gray-400 text-sm py-4">Laster kommentarer...</div>
+            <div className="text-center text-sm py-4" style={{ color: "var(--text-muted)" }}>Laster kommentarer...</div>
           ) : comments.length === 0 ? (
-            <div className="text-center text-gray-400 text-sm py-4">Ingen kommentarer ennå</div>
+            <div className="text-center text-sm py-4" style={{ color: "var(--text-muted)" }}>Ingen kommentarer enna</div>
           ) : (
             <div className="space-y-3">
               {comments.map((c) => (
                 <div key={c.id} className="flex gap-2 animate-fade-in">
-                  {c.profiles?.avatar_url ? <img src={c.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full flex-shrink-0 mt-0.5" /> : (
-                    <div className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 mt-0.5 flex items-center justify-center text-xs font-bold">{(c.profiles?.display_name || "?")[0].toUpperCase()}</div>
+                  {c.profiles?.avatar_url ? <img src={c.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full flex-shrink-0 mt-0.5 avatar-ring" /> : (
+                    <div className="w-7 h-7 rounded-full avatar-gradient flex-shrink-0 mt-0.5 flex items-center justify-center text-xs font-bold text-white">{(c.profiles?.display_name || "?")[0].toUpperCase()}</div>
                   )}
                   <div className="min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{c.profiles?.display_name}</span>
-                      <span className="text-xs text-gray-400">{formatTime(c.created_at)}</span>
+                      <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{c.profiles?.display_name}</span>
+                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatTime(c.created_at)}</span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{c.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words" style={{ color: "var(--text-secondary)" }}>{c.content}</p>
                   </div>
                 </div>
               ))}
@@ -404,11 +413,13 @@ function PostDetailModal({ post, userId, onClose, onVote }: {
             </div>
           )}
         </div>
-        <form onSubmit={handleSend} className="p-3 border-t border-gray-200 dark:border-gray-700/50 flex gap-2 flex-shrink-0">
+        <form onSubmit={handleSend} className="p-3 flex gap-2 flex-shrink-0" style={{ borderTop: "1px solid var(--border-subtle)" }}>
           <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Skriv en kommentar..." disabled={sending}
-            className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-base sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50" />
+            className="flex-1 rounded-xl px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
+            style={{ background: "var(--surface-glass)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
           <button type="submit" disabled={!newComment.trim() || sending}
-            className="gradient-primary text-white rounded-xl px-3 py-2 text-sm font-medium hover:shadow-md hover:shadow-indigo-500/25 transition-all disabled:opacity-50">Send</button>
+            className="gradient-primary text-white rounded-xl px-3 py-2 text-sm font-medium hover:shadow-md transition-all disabled:opacity-50"
+            style={{ boxShadow: "0 4px 12px rgba(245, 158, 11, 0.25)" }}>Send</button>
         </form>
       </div>
     </div>

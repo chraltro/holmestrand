@@ -2,36 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Huset — Nordic Glass Design System ──────────────────── */
+/* Warm amber/rose palette · Fraunces + DM Sans · Never blue  */
+
 @layer base {
+  :root {
+    --bg-primary: #fdf8f0;
+    --bg-secondary: #f5ede0;
+    --surface-glass: rgba(255, 255, 255, 0.7);
+    --surface-glass-hover: rgba(255, 255, 255, 0.85);
+    --border-subtle: rgba(180, 160, 130, 0.2);
+    --border-active: rgba(245, 158, 11, 0.4);
+    --text-primary: #2c1810;
+    --text-secondary: #6b5744;
+    --text-muted: #9a8672;
+    --accent-amber: #f59e0b;
+    --accent-rose: #e11d48;
+    --shadow-glow: rgba(245, 158, 11, 0.15);
+  }
+
+  .dark {
+    --bg-primary: #1a1412;
+    --bg-secondary: #231e1b;
+    --surface-glass: rgba(255, 245, 235, 0.04);
+    --surface-glass-hover: rgba(255, 245, 235, 0.08);
+    --border-subtle: rgba(255, 245, 235, 0.06);
+    --border-active: rgba(245, 158, 11, 0.3);
+    --text-primary: #fef3e2;
+    --text-secondary: #c4a882;
+    --text-muted: #8b7355;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --shadow-glow: rgba(245, 158, 11, 0.12);
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Fraunces", "DM Sans", serif;
   }
 }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
 
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: rgba(180, 160, 130, 0.3) transparent;
   }
   .dark .scrollbar-thin {
-    scrollbar-color: #4b5563 transparent;
+    scrollbar-color: rgba(139, 115, 85, 0.3) transparent;
   }
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
+    background-color: rgba(180, 160, 130, 0.3);
     border-radius: 3px;
   }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(180, 160, 130, 0.5);
+  }
   .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
+    background-color: rgba(139, 115, 85, 0.3);
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(139, 115, 85, 0.5);
+  }
+
+  .font-display {
+    font-family: "Fraunces", "DM Sans", serif;
   }
 }
 
-/* ── Animations ────────────────────────────────────────────── */
+/* ── Animations ──────────────────────────────────────────── */
 
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
@@ -48,6 +101,27 @@
   50%      { transform: translateY(-12px) rotate(2deg); }
 }
 
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(30px, -50px) scale(1.05); }
+  50%      { transform: translate(-20px, -20px) scale(0.95); }
+  75%      { transform: translate(10px, 30px) scale(1.02); }
+}
+
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-40px, 30px) scale(1.08); }
+  66%      { transform: translate(20px, -40px) scale(0.92); }
+}
+
+@keyframes blob-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20%      { transform: translate(20px, 40px) scale(1.04); }
+  40%      { transform: translate(-30px, 10px) scale(0.96); }
+  60%      { transform: translate(10px, -30px) scale(1.06); }
+  80%      { transform: translate(-10px, 20px) scale(0.98); }
+}
+
 @keyframes gradient-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
@@ -60,8 +134,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-  50%      { box-shadow: 0 0 20px 4px rgba(99, 102, 241, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  50%      { box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.15); }
 }
 
 .animate-fade-in {
@@ -74,6 +148,18 @@
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+.animate-blob-1 {
+  animation: blob-drift-1 25s ease-in-out infinite;
+}
+
+.animate-blob-2 {
+  animation: blob-drift-2 30s ease-in-out infinite;
+}
+
+.animate-blob-3 {
+  animation: blob-drift-3 35s ease-in-out infinite;
 }
 
 .animate-gradient {
@@ -90,41 +176,97 @@
   animation: pulse-glow 3s ease-in-out infinite;
 }
 
-/* ── Glass Morphism ────────────────────────────────────────── */
+/* ── Glass Morphism ──────────────────────────────────────── */
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
 }
 
-.dark .glass {
-  background: rgba(17, 24, 39, 0.75);
+.glass-solid {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(180, 160, 130, 0.15);
 }
 
-/* ── Gradient Accents ──────────────────────────────────────── */
+.dark .glass-solid {
+  background: rgba(35, 30, 27, 0.85);
+  border-color: rgba(255, 245, 235, 0.06);
+}
+
+/* ── Gradient Accents ────────────────────────────────────── */
 
 .gradient-primary {
-  background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, #f59e0b, #e11d48);
 }
 
 .gradient-warm {
-  background: linear-gradient(135deg, #f59e0b, #ef4444, #ec4899);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ── Focus Glow ────────────────────────────────────────────── */
+/* ── Focus Glow ──────────────────────────────────────────── */
 
 .focus-glow:focus-within {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
 .dark .focus-glow:focus-within {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+/* ── Background Blobs ────────────────────────────────────── */
+
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+.blob-amber {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+}
+.dark .blob-amber {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
+}
+
+.blob-rose {
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.10) 0%, transparent 70%);
+}
+.dark .blob-rose {
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.05) 0%, transparent 70%);
+}
+
+.blob-warm {
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.08) 0%, transparent 70%);
+}
+.dark .blob-warm {
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.04) 0%, transparent 70%);
+}
+
+/* ── Shadow System ───────────────────────────────────────── */
+
+.shadow-warm {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(180, 160, 130, 0.08);
+}
+.dark .shadow-warm {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 245, 235, 0.04);
+}
+
+/* ── Avatar ──────────────────────────────────────────────── */
+
+.avatar-gradient {
+  background: linear-gradient(135deg, #f59e0b, #f43f5e);
 }

@@ -104,7 +104,7 @@ export function FileGrid({
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Laster filer...</div>
+        <div className="animate-pulse" style={{ color: "var(--text-muted)" }}>Laster filer...</div>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export function FileGrid({
   if (files.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Ingen filer lastet opp ennå</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Ingen filer lastet opp enna</p>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export function FileGrid({
   }
 
   async function handleDeleteFile(file: Message) {
-    if (!confirm(`Er du sikker på at du vil slette "${file.file_name || "denne filen"}"?`)) return;
+    if (!confirm(`Er du sikker pa at du vil slette "${file.file_name || "denne filen"}"?`)) return;
     const prev = files;
     setFiles((p) => p.filter((f) => f.id !== file.id));
 
@@ -156,12 +156,12 @@ export function FileGrid({
     <div className="flex-1 overflow-y-auto p-4">
       {pinnedFiles.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
+            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
             </svg>
             Festede filer
-            {pinnedFiles.length > 1 && <span className="text-[10px] text-gray-400 font-normal ml-1">(dra for å endre rekkefølge)</span>}
+            {pinnedFiles.length > 1 && <span className="text-[10px] font-normal ml-1" style={{ color: "var(--text-muted)" }}>(dra for a endre rekkefolge)</span>}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {pinnedFiles.map((file) => (
@@ -237,10 +237,10 @@ function FileCard({
 
   return (
     <div
-      className={`group relative bg-white dark:bg-gray-900 rounded-lg border overflow-hidden hover:shadow-md transition-all ${
-        isDragOver ? "border-indigo-400 ring-2 ring-indigo-400/30 scale-[1.02]" :
-        isDragging ? "opacity-50 border-gray-300 dark:border-gray-600" :
-        "border-gray-200 dark:border-gray-700"
+      className={`group relative glass rounded-lg overflow-hidden hover:shadow-warm transition-all ${
+        isDragOver ? "border-amber-400 ring-2 ring-amber-400/30 scale-[1.02]" :
+        isDragging ? "opacity-50" :
+        ""
       } ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
       draggable={draggable}
       onDragStart={onDragStart}
@@ -251,9 +251,9 @@ function FileCard({
       {isImage ? (
         <button
           onClick={handleClick}
-          className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full focus:outline-none focus:ring-2 focus:ring-amber-500"
         >
-          <div className="aspect-square bg-gray-100 dark:bg-gray-800">
+          <div className="aspect-square" style={{ background: "var(--surface-glass)" }}>
             <img
               src={file.file_url!}
               alt={file.file_name || "Bilde"}
@@ -267,7 +267,7 @@ function FileCard({
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div className="aspect-square bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+          <div className="aspect-square flex items-center justify-center" style={{ background: "var(--surface-glass)" }}>
             {isPdfType(file.file_type) ? (
               <svg
                 className="w-16 h-16 text-red-400"
@@ -278,7 +278,8 @@ function FileCard({
               </svg>
             ) : (
               <svg
-                className="w-16 h-16 text-gray-300 dark:text-gray-600"
+                className="w-16 h-16"
+                style={{ color: "var(--text-muted)" }}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -299,15 +300,15 @@ function FileCard({
         {onTogglePin && (
           <button
             onClick={() => onTogglePin(file.id, !!file.is_pinned)}
-            className="bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-200 dark:border-gray-600"
+            className="glass rounded-full p-1.5 shadow-sm"
             title={file.is_pinned ? "Fjern fra festet" : "Fest fil"}
           >
             {file.is_pinned ? (
-              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
               </svg>
             ) : (
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
               </svg>
             )}
@@ -316,10 +317,10 @@ function FileCard({
         {onDelete && (
           <button
             onClick={onDelete}
-            className="bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="glass rounded-full p-1.5 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20"
             title="Slett fil"
           >
-            <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 hover:text-red-500" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
@@ -327,10 +328,10 @@ function FileCard({
       </div>
 
       <div className="p-2">
-        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+        <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
           {file.file_name || "Fil"}
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
           {file.profiles?.display_name} &middot;{" "}
           {formatDate(file.created_at)}
         </p>

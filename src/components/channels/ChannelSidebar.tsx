@@ -31,7 +31,6 @@ export function ChannelSidebar({
   const pathname = usePathname();
   const { dark, toggle } = useTheme();
 
-  // Mark channel as read when navigating to it
   useEffect(() => {
     if (!markAsRead) return;
     const match = pathname.match(/^\/channel\/(.+)$/);
@@ -43,24 +42,24 @@ export function ChannelSidebar({
   }, [pathname, channels, markAsRead]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white">
-      {/* Header with gradient */}
-      <div className="p-4 border-b border-gray-700/50 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-primary opacity-10" />
+    <div className="flex flex-col h-full glass-solid" style={{ background: "var(--bg-secondary)" }}>
+      {/* Header */}
+      <div className="p-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center" style={{ boxShadow: "0 4px 12px rgba(245,158,11,0.25)" }}>
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
-            <h1 className="text-lg font-bold tracking-tight">Holmestrand</h1>
+            <h1 className="text-lg font-display font-bold gradient-text">Huset</h1>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={toggle}
-              className="hidden lg:block text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-all"
-              title={dark ? "Lyst modus" : "Mørkt modus"}
+              className="hidden lg:block p-1.5 rounded-lg transition-all hover:bg-[var(--surface-glass)]"
+              style={{ color: "var(--text-muted)" }}
+              title={dark ? "Lyst modus" : "Morkt modus"}
             >
               {dark ? (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,10 +72,7 @@ export function ChannelSidebar({
               )}
             </button>
             {onClose && (
-              <button
-                onClick={onClose}
-                className="lg:hidden text-gray-400 hover:text-white p-1"
-              >
+              <button onClick={onClose} className="lg:hidden p-1" style={{ color: "var(--text-muted)" }}>
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -86,18 +82,19 @@ export function ChannelSidebar({
         </div>
       </div>
 
-      {/* Search button */}
+      {/* Search */}
       {onSearchOpen && (
         <div className="px-3 pt-3">
           <button
             onClick={onSearchOpen}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-400 text-sm transition-colors border border-gray-700/50 hover:border-gray-600"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all glass"
+            style={{ color: "var(--text-muted)" }}
           >
             <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span className="flex-1 text-left">Søk...</span>
-            <kbd className="hidden sm:inline text-[10px] bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+            <span className="flex-1 text-left">Sok...</span>
+            <kbd className="hidden sm:inline text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ background: "var(--surface-glass)", color: "var(--text-muted)" }}>⌘K</kbd>
           </button>
         </div>
       )}
@@ -105,7 +102,7 @@ export function ChannelSidebar({
       {/* Channel list */}
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
         <div className="px-3 mb-2">
-          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest">
+          <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
             Kanaler
           </span>
         </div>
@@ -119,16 +116,21 @@ export function ChannelSidebar({
               onClick={onClose}
               className={`flex items-center gap-2 mx-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
                 isActive
-                  ? "bg-indigo-500/20 text-white border-l-2 border-indigo-400 ml-1.5"
+                  ? "glass border-l-2"
                   : unread > 0
-                  ? "text-white font-semibold hover:bg-white/5"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "font-semibold"
+                  : ""
               }`}
+              style={
+                isActive
+                  ? { borderColor: "var(--accent-amber)", color: "var(--text-primary)", marginLeft: "6px" }
+                  : { color: unread > 0 ? "var(--text-primary)" : "var(--text-secondary)" }
+              }
             >
-              <span className={`text-sm ${isActive ? "text-indigo-400" : "text-gray-600"}`}>#</span>
+              <span className="text-sm" style={{ color: isActive ? "var(--accent-amber)" : "var(--text-muted)" }}>#</span>
               <span className="flex-1">{channel.name}</span>
               {unread > 0 && !isActive && (
-                <span className="min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                <span className="min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full gradient-primary text-white text-[10px] font-bold">
                   {unread > 99 ? "99+" : unread}
                 </span>
               )}
@@ -136,7 +138,6 @@ export function ChannelSidebar({
           );
         })}
 
-        {/* Documents section */}
         <DocumentList />
       </div>
 
@@ -147,10 +148,9 @@ export function ChannelSidebar({
             href="/admin"
             onClick={onClose}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-150 ${
-              pathname === "/admin"
-                ? "bg-indigo-500/20 text-white"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
+              pathname === "/admin" ? "glass" : ""
             }`}
+            style={{ color: pathname === "/admin" ? "var(--text-primary)" : "var(--text-secondary)" }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -162,31 +162,26 @@ export function ChannelSidebar({
       )}
 
       {/* User footer */}
-      <div className="p-3 border-t border-gray-700/50 flex items-center gap-3">
+      <div className="p-3 flex items-center gap-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <div className="relative">
           {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile.display_name}
-              className="w-8 h-8 rounded-full ring-2 ring-indigo-500/30"
-            />
+            <img src={profile.avatar_url} alt={profile.display_name} className="w-8 h-8 rounded-full avatar-ring" />
           ) : (
-            <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-white">
+            <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-xs font-bold text-white">
               {(profile?.display_name || "?")[0].toUpperCase()}
             </div>
           )}
           {profile && isOnline?.(profile.id) && (
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 rounded-full" style={{ borderColor: "var(--bg-secondary)" }} />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">
-            {profile?.display_name}
-          </p>
+          <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{profile?.display_name}</p>
         </div>
         <button
           onClick={onSignOut}
-          className="text-gray-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+          className="transition-colors p-1 rounded-lg hover:bg-[var(--surface-glass)]"
+          style={{ color: "var(--text-muted)" }}
           title="Logg ut"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
