@@ -7,7 +7,7 @@ import { MessageList } from "@/components/chat/MessageList";
 import { MessageInput } from "@/components/chat/MessageInput";
 
 import { BoardGrid } from "@/components/boards/BoardGrid";
-import { Channel, Message, Profile } from "@/lib/types";
+import { Channel, Message, Profile, FloorPlan } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -35,6 +35,7 @@ export default function ChannelPage() {
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+  const [floorPlan, setFloorPlan] = useState<FloorPlan | null>(null);
   const isGenerelt = slug === "generelt";
 
   const { messages, loading: messagesLoading, hasMore, loadMore, deleteMessage, togglePin, editMessage, toggleReaction } = useMessages(channel?.id ?? null, user?.id ?? null);
@@ -47,7 +48,17 @@ export default function ChannelPage() {
     }
     fetchChannel();
     setActiveTab("chat");
+    setFloorPlan(null);
   }, [slug, supabase]);
+
+  useEffect(() => {
+    if (!channel?.floor) { setFloorPlan(null); return; }
+    async function fetchFloorPlan() {
+      const { data } = await supabase.from("floor_plans").select("*").eq("floor", channel!.floor).single();
+      setFloorPlan(data);
+    }
+    fetchFloorPlan();
+  }, [channel?.floor, supabase]);
 
   useEffect(() => {
     async function fetchProfiles() {
@@ -77,13 +88,27 @@ export default function ChannelPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="glass-solid px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {channel.emoji && <span className="text-xl">{channel.emoji}</span>}
-            <h2 className="text-xl font-display font-medium" style={{ color: "var(--text-primary)" }}>
+            <h2 className="text-xl font-display font-medium truncate" style={{ color: "var(--text-primary)" }}>
               {channel.name}
             </h2>
           </div>
+          {floorPlan && channel.floor_plan_x != null && channel.floor_plan_y != null && (
+            <div className="relative flex-shrink-0 w-[80px] h-[60px] rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
+              <img src={floorPlan.image_url} alt="Plantegning" className="w-full h-full object-cover opacity-60" />
+              <div
+                className="absolute w-3 h-3 rounded-full gradient-primary"
+                style={{
+                  left: `${channel.floor_plan_x}%`,
+                  top: `${channel.floor_plan_y}%`,
+                  transform: "translate(-50%, -50%)",
+                  boxShadow: "0 0 8px rgba(232, 168, 124, 0.6), 0 0 0 2px rgba(255,255,255,0.8)",
+                }}
+              />
+            </div>
+          )}
         </div>
         <div className="flex gap-1 mt-3 rounded-[10px] p-[3px] glass">
           {visibleTabs.map((tab) => (
