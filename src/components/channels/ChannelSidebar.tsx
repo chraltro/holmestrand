@@ -1,11 +1,40 @@
 "use client";
 
-import { Channel, Profile } from "@/lib/types";
+import { Channel, Profile, Floor, FLOOR_LABELS, FLOOR_ORDER } from "@/lib/types";
 import { useTheme } from "@/hooks/useTheme";
 import { DocumentList } from "@/components/sidebar/DocumentList";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+
+function ChannelItem({ channel, isActive, unread, onClose }: { channel: Channel; isActive: boolean; unread: number; onClose?: () => void }) {
+  return (
+    <Link
+      href={`/channel/${channel.slug}`}
+      onClick={onClose}
+      className={`flex items-center gap-2.5 mx-2 px-3.5 py-2.5 rounded-[10px] text-sm transition-all duration-250 ${
+        isActive ? "font-medium" : unread > 0 ? "font-semibold" : "font-normal"
+      }`}
+      style={
+        isActive
+          ? { background: "linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(212, 114, 106, 0.15))", border: "1px solid rgba(232, 168, 124, 0.2)", color: "var(--text-primary)" }
+          : { color: unread > 0 ? "var(--text-primary)" : "var(--text-secondary)" }
+      }
+    >
+      {channel.emoji ? (
+        <span className="text-base w-[18px] text-center">{channel.emoji}</span>
+      ) : (
+        <span className="font-display text-base font-light w-[18px] text-center" style={{ color: "var(--accent-amber)", opacity: isActive ? 1 : 0.7 }}>#</span>
+      )}
+      <span className="flex-1">{channel.name}</span>
+      {unread > 0 && !isActive && (
+        <span className="min-w-[18px] h-[18px] flex items-center justify-center px-[7px] rounded-[10px] text-white text-[10px] font-medium" style={{ background: "var(--accent-rose)" }}>
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 interface ChannelSidebarProps {
   channels: Channel[];
@@ -102,50 +131,60 @@ export function ChannelSidebar({
 
       {/* Channel list */}
       <div className="flex-1 overflow-y-auto scrollbar-thin py-3">
-        <div className="px-3 mb-2">
-          <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
-            Kanaler
-          </span>
-        </div>
-        {[...channels].sort((a, b) => {
-          if (a.slug === "generelt") return -1;
-          if (b.slug === "generelt") return 1;
-          return a.name.localeCompare(b.name, "nb");
-        }).map((channel) => {
+        {/* Generelt always on top */}
+        {channels.filter((c) => c.slug === "generelt").map((channel) => {
           const isActive = pathname === `/channel/${channel.slug}`;
           const unread = unreadCounts[channel.id] || 0;
           return (
-            <Link
-              key={channel.id}
-              href={`/channel/${channel.slug}`}
-              onClick={onClose}
-              className={`flex items-center gap-2.5 mx-2 px-3.5 py-2.5 rounded-[10px] text-sm transition-all duration-250 ${
-                isActive
-                  ? "font-medium"
-                  : unread > 0
-                  ? "font-semibold"
-                  : "font-normal"
-              }`}
-              style={
-                isActive
-                  ? { background: "linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(212, 114, 106, 0.15))", border: "1px solid rgba(232, 168, 124, 0.2)", color: "var(--text-primary)" }
-                  : { color: unread > 0 ? "var(--text-primary)" : "var(--text-secondary)" }
-              }
-            >
-              {channel.emoji ? (
-                <span className="text-base w-[18px] text-center">{channel.emoji}</span>
-              ) : (
-                <span className="font-display text-base font-light w-[18px] text-center" style={{ color: "var(--accent-amber)", opacity: isActive ? 1 : 0.7 }}>#</span>
-              )}
-              <span className="flex-1">{channel.name}</span>
-              {unread > 0 && !isActive && (
-                <span className="min-w-[18px] h-[18px] flex items-center justify-center px-[7px] rounded-[10px] text-white text-[10px] font-medium" style={{ background: "var(--accent-rose)" }}>
-                  {unread > 99 ? "99+" : unread}
-                </span>
-              )}
-            </Link>
+            <ChannelItem key={channel.id} channel={channel} isActive={isActive} unread={unread} onClose={onClose} />
           );
         })}
+
+        {/* Floor groups */}
+        {FLOOR_ORDER.map((floor) => {
+          const floorChannels = channels
+            .filter((c) => c.floor === floor)
+            .sort((a, b) => a.name.localeCompare(b.name, "nb"));
+          if (floorChannels.length === 0) return null;
+          return (
+            <div key={floor} className="mt-3">
+              <div className="px-3 mb-1.5">
+                <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
+                  {FLOOR_LABELS[floor]}
+                </span>
+              </div>
+              {floorChannels.map((channel) => {
+                const isActive = pathname === `/channel/${channel.slug}`;
+                const unread = unreadCounts[channel.id] || 0;
+                return (
+                  <ChannelItem key={channel.id} channel={channel} isActive={isActive} unread={unread} onClose={onClose} />
+                );
+              })}
+            </div>
+          );
+        })}
+
+        {/* Ungrouped channels (no floor set, excluding generelt) */}
+        {(() => {
+          const ungrouped = channels.filter((c) => !c.floor && c.slug !== "generelt").sort((a, b) => a.name.localeCompare(b.name, "nb"));
+          if (ungrouped.length === 0) return null;
+          return (
+            <div className="mt-3">
+              <div className="px-3 mb-1.5">
+                <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
+                  Annet
+                </span>
+              </div>
+              {ungrouped.map((channel) => {
+                const isActive = pathname === `/channel/${channel.slug}`;
+                const unread = unreadCounts[channel.id] || 0;
+                return (
+                  <ChannelItem key={channel.id} channel={channel} isActive={isActive} unread={unread} onClose={onClose} />
+                );
+              })}
+            </div>
+          );
+        })()}
 
         <DocumentList />
       </div>

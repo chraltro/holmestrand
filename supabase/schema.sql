@@ -20,7 +20,18 @@ create table public.channels (
   name text not null,
   slug text not null unique,
   emoji text,
+  floor text check (floor in ('underetasje', 'stueetasje', 'overetasje', 'ute')),
+  floor_plan_x real,
+  floor_plan_y real,
   created_by uuid references public.profiles(id),
+  created_at timestamptz default now()
+);
+
+-- Floor plan images (one per floor)
+create table public.floor_plans (
+  id uuid default gen_random_uuid() primary key,
+  floor text not null unique check (floor in ('underetasje', 'stueetasje', 'overetasje', 'ute')),
+  image_url text not null,
   created_at timestamptz default now()
 );
 
@@ -52,6 +63,7 @@ alter table public.profiles enable row level security;
 alter table public.channels enable row level security;
 alter table public.messages enable row level security;
 alter table public.invite_codes enable row level security;
+alter table public.floor_plans enable row level security;
 
 -- Profiles: users can read all profiles, only update their own
 create policy "Profiles are viewable by authenticated users"
@@ -104,6 +116,27 @@ create policy "Admins can delete channels"
       select 1 from public.profiles
       where profiles.id = auth.uid()
       and profiles.is_admin = true
+    )
+  );
+
+-- Floor plans: approved users can read, admins can manage
+create policy "Floor plans are viewable by approved users"
+  on public.floor_plans for select
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+      and p.is_approved = true
+    )
+  );
+
+create policy "Admins can manage floor plans"
+  on public.floor_plans for all
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+      and p.is_admin = true
     )
   );
 
@@ -174,13 +207,13 @@ alter publication supabase_realtime add table messages;
 -- Seed default channels
 -- =============================================
 
-insert into public.channels (name, slug, emoji) values
-  ('Generelt', 'generelt', '💬'),
-  ('Kjøkken', 'kjokken', '🍳'),
-  ('Stue', 'stue', '🛋️'),
-  ('Bad', 'bad', '🛁'),
-  ('Hage', 'hage', '🌿'),
-  ('Soverom', 'soverom', '🛏️');
+insert into public.channels (name, slug, emoji, floor) values
+  ('Generelt', 'generelt', '💬', null),
+  ('Kjøkken', 'kjokken', '🍳', 'stueetasje'),
+  ('Stue', 'stue', '🛋️', 'stueetasje'),
+  ('Bad', 'bad', '🛁', 'stueetasje'),
+  ('Hage', 'hage', '🌿', 'ute'),
+  ('Soverom', 'soverom', '🛏️', 'overetasje');
 
 -- =============================================
 -- Storage bucket for files

@@ -8,12 +8,33 @@ export interface Profile {
   created_at: string;
 }
 
+export type Floor = "underetasje" | "stueetasje" | "overetasje" | "ute";
+
+export const FLOOR_LABELS: Record<Floor, string> = {
+  underetasje: "Underetasje",
+  stueetasje: "Stueetasje",
+  overetasje: "Overetasje",
+  ute: "Ute",
+};
+
+export const FLOOR_ORDER: Floor[] = ["underetasje", "stueetasje", "overetasje", "ute"];
+
 export interface Channel {
   id: string;
   name: string;
   slug: string;
   emoji: string | null;
+  floor: Floor | null;
+  floor_plan_x: number | null;
+  floor_plan_y: number | null;
   created_by: string | null;
+  created_at: string;
+}
+
+export interface FloorPlan {
+  id: string;
+  floor: Floor;
+  image_url: string;
   created_at: string;
 }
 
