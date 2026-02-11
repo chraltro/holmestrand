@@ -23,14 +23,21 @@ export async function GET(request: Request) {
         const isAdmin =
           data.user.email === process.env.ADMIN_EMAIL;
 
+        const meta = data.user.user_metadata;
+        // Google provides full_name + avatar_url.
+        // Apple may provide name as a separate object or not at all.
+        const displayName =
+          meta.full_name ||
+          meta.name ||
+          [meta.first_name, meta.last_name].filter(Boolean).join(" ") ||
+          data.user.email?.split("@")[0] ||
+          "Bruker";
+
         await supabase.from("profiles").insert({
           id: data.user.id,
           email: data.user.email,
-          display_name:
-            data.user.user_metadata.full_name ||
-            data.user.email?.split("@")[0] ||
-            "Bruker",
-          avatar_url: data.user.user_metadata.avatar_url || "",
+          display_name: displayName,
+          avatar_url: meta.avatar_url || "",
           is_admin: isAdmin,
           is_approved: isAdmin, // Admin is auto-approved
         });
