@@ -187,6 +187,32 @@ export function ChannelSidebar({
         })()}
 
         <DocumentList />
+
+        {/* Bilder link */}
+        <div className="py-3">
+          <div className="px-3 mb-2">
+            <span className="text-[10px] font-medium uppercase" style={{ letterSpacing: "2.5px", color: "var(--text-muted)" }}>
+              Medier
+            </span>
+          </div>
+          <Link
+            href="/bilder"
+            onClick={onClose}
+            className={`flex items-center gap-2.5 mx-2 px-3.5 py-2.5 rounded-[10px] text-sm transition-colors ${
+              pathname === "/bilder" ? "font-medium" : "font-normal"
+            }`}
+            style={
+              pathname === "/bilder"
+                ? { background: "linear-gradient(135deg, rgba(232, 168, 124, 0.2), rgba(212, 114, 106, 0.15))", border: "1px solid rgba(232, 168, 124, 0.2)", color: "var(--text-primary)" }
+                : { color: "var(--text-secondary)" }
+            }
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0" style={{ background: "rgba(232, 168, 124, 0.1)", border: "1px solid rgba(232, 168, 124, 0.15)" }}>
+              🖼️
+            </div>
+            <span className="truncate">Alle bilder</span>
+          </Link>
+        </div>
       </div>
 
       {/* Admin link */}
