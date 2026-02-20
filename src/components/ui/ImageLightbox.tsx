@@ -23,6 +23,8 @@ export function useLightbox() {
 }
 
 // --- Zoom & Swipe Image Viewer ---
+// All gesture state lives in refs to avoid re-renders during interaction.
+// Transforms are written directly to the DOM for smooth 60fps.
 function ZoomableImage({
   src,
   onSwipeLeft,
@@ -37,188 +39,270 @@ function ZoomableImage({
   hasPrev: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Refs for gesture tracking
-  const dragStart = useRef({ x: 0, y: 0 });
-  const translateStart = useRef({ x: 0, y: 0 });
-  const lastTap = useRef(0);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const pinchStartDist = useRef(0);
-  const pinchStartScale = useRef(1);
-  const isSwiping = useRef(false);
-  const swipeOffset = useRef(0);
-  const [swipeX, setSwipeX] = useState(0);
+  // All mutable gesture state in a single ref to avoid re-render overhead
+  const gs = useRef({
+    scale: 1,
+    tx: 0,
+    ty: 0,
+    swipeX: 0,
+    dragging: false,
+    swiping: false,
+    dragStartX: 0,
+    dragStartY: 0,
+    txStart: 0,
+    tyStart: 0,
+    pinchDist: 0,
+    pinchScale: 1,
+    lastTap: 0,
+    touchStartX: 0,
+    touchStartY: 0,
+    touchStartTime: 0,
+    animating: false,
+  });
 
-  // Reset zoom when image changes
-  useEffect(() => {
-    setScale(1);
-    setTranslate({ x: 0, y: 0 });
-    setSwipeX(0);
-    isSwiping.current = false;
-    swipeOffset.current = 0;
-  }, [src]);
+  // For cursor style (only thing that needs re-render)
+  const [cursor, setCursor] = useState<"default" | "grab" | "grabbing">("default");
 
-  // Wheel zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.stopPropagation();
-    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-    setScale((prev) => {
-      const next = Math.min(Math.max(prev + delta, 1), 5);
-      if (next === 1) setTranslate({ x: 0, y: 0 });
-      return next;
-    });
+  // Direct DOM write – no React state, no re-renders
+  const applyTransform = useCallback((animate: boolean) => {
+    const img = imgRef.current;
+    if (!img) return;
+    const { tx, ty, swipeX, scale } = gs.current;
+    img.style.transition = animate ? "transform 0.25s cubic-bezier(.2,.8,.4,1)" : "none";
+    img.style.transform = `translate3d(${tx + swipeX}px,${ty}px,0) scale(${scale})`;
   }, []);
 
-  // Double-click / double-tap to zoom
+  // Reset when image changes
+  useEffect(() => {
+    const g = gs.current;
+    g.scale = 1;
+    g.tx = 0;
+    g.ty = 0;
+    g.swipeX = 0;
+    g.dragging = false;
+    g.swiping = false;
+    g.animating = false;
+    applyTransform(false);
+    setCursor("default");
+  }, [src, applyTransform]);
+
+  // Clamp pan so image edges stay reasonable
+  const clampPan = useCallback(() => {
+    const g = gs.current;
+    if (g.scale <= 1) {
+      g.tx = 0;
+      g.ty = 0;
+      return;
+    }
+    const img = imgRef.current;
+    const container = containerRef.current;
+    if (!img || !container) return;
+    const iw = img.offsetWidth * g.scale;
+    const ih = img.offsetHeight * g.scale;
+    const cw = container.offsetWidth;
+    const ch = container.offsetHeight;
+    const maxX = Math.max(0, (iw - cw) / 2);
+    const maxY = Math.max(0, (ih - ch) / 2);
+    g.tx = Math.min(maxX, Math.max(-maxX, g.tx));
+    g.ty = Math.min(maxY, Math.max(-maxY, g.ty));
+  }, []);
+
+  // --- Wheel zoom (multiplicative for even feel) ---
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const g = gs.current;
+      const factor = e.deltaY > 0 ? 0.9 : 1.1;
+      const next = Math.min(Math.max(g.scale * factor, 1), 5);
+      g.scale = next;
+      if (next <= 1) { g.tx = 0; g.ty = 0; }
+      clampPan();
+      applyTransform(false);
+      setCursor(next > 1 ? "grab" : "default");
+    };
+    container.addEventListener("wheel", handler, { passive: false });
+    return () => container.removeEventListener("wheel", handler);
+  }, [applyTransform, clampPan]);
+
+  // Double-click to toggle zoom
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (scale > 1) {
-      setScale(1);
-      setTranslate({ x: 0, y: 0 });
+    const g = gs.current;
+    if (g.scale > 1) {
+      g.scale = 1;
+      g.tx = 0;
+      g.ty = 0;
+      setCursor("default");
     } else {
-      setScale(2.5);
+      g.scale = 2.5;
+      setCursor("grab");
     }
-  }, [scale]);
+    applyTransform(true);
+  }, [applyTransform]);
 
-  // Mouse drag for panning when zoomed
+  // --- Mouse drag for panning ---
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (scale <= 1) return;
+    const g = gs.current;
+    if (g.scale <= 1) return;
     e.stopPropagation();
-    setIsDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY };
-    translateStart.current = { ...translate };
-  }, [scale, translate]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || scale <= 1) return;
-    e.stopPropagation();
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    setTranslate({
-      x: translateStart.current.x + dx,
-      y: translateStart.current.y + dy,
-    });
-  }, [isDragging, scale]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
+    g.dragging = true;
+    g.dragStartX = e.clientX;
+    g.dragStartY = e.clientY;
+    g.txStart = g.tx;
+    g.tyStart = g.ty;
+    setCursor("grabbing");
   }, []);
 
-  // Touch handlers for swipe + pinch + double-tap
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const g = gs.current;
+    if (!g.dragging || g.scale <= 1) return;
+    e.stopPropagation();
+    g.tx = g.txStart + (e.clientX - g.dragStartX);
+    g.ty = g.tyStart + (e.clientY - g.dragStartY);
+    clampPan();
+    applyTransform(false);
+  }, [applyTransform, clampPan]);
+
+  const handleMouseUp = useCallback(() => {
+    const g = gs.current;
+    if (g.dragging) {
+      g.dragging = false;
+      setCursor(g.scale > 1 ? "grab" : "default");
+    }
+  }, []);
+
+  // --- Touch: swipe / pinch / double-tap / pan ---
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
+    const g = gs.current;
+    g.animating = false;
 
     if (e.touches.length === 2) {
-      // Pinch start
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
-      pinchStartDist.current = Math.sqrt(dx * dx + dy * dy);
-      pinchStartScale.current = scale;
-      isSwiping.current = false;
+      g.pinchDist = Math.sqrt(dx * dx + dy * dy);
+      g.pinchScale = g.scale;
+      g.swiping = false;
       return;
     }
 
     if (e.touches.length === 1) {
       const now = Date.now();
-      const touch = e.touches[0];
+      const t = e.touches[0];
 
-      // Double-tap detection
-      if (now - lastTap.current < 300) {
-        if (scale > 1) {
-          setScale(1);
-          setTranslate({ x: 0, y: 0 });
+      // Double-tap
+      if (now - g.lastTap < 300) {
+        g.lastTap = 0;
+        if (g.scale > 1) {
+          g.scale = 1;
+          g.tx = 0;
+          g.ty = 0;
+          setCursor("default");
         } else {
-          setScale(2.5);
+          g.scale = 2.5;
+          setCursor("grab");
         }
-        lastTap.current = 0;
+        applyTransform(true);
         return;
       }
-      lastTap.current = now;
+      g.lastTap = now;
 
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: now };
+      g.touchStartX = t.clientX;
+      g.touchStartY = t.clientY;
+      g.touchStartTime = now;
 
-      if (scale > 1) {
-        // Pan mode
-        setIsDragging(true);
-        dragStart.current = { x: touch.clientX, y: touch.clientY };
-        translateStart.current = { ...translate };
-        isSwiping.current = false;
+      if (g.scale > 1) {
+        g.dragging = true;
+        g.dragStartX = t.clientX;
+        g.dragStartY = t.clientY;
+        g.txStart = g.tx;
+        g.tyStart = g.ty;
+        g.swiping = false;
       } else {
-        // Potential swipe
-        isSwiping.current = true;
-        swipeOffset.current = 0;
-        setSwipeX(0);
+        g.swiping = true;
+        g.swipeX = 0;
       }
     }
-  }, [scale, translate]);
+  }, [applyTransform]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
+    const g = gs.current;
 
     if (e.touches.length === 2) {
-      // Pinch zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const newScale = Math.min(Math.max(pinchStartScale.current * (dist / pinchStartDist.current), 1), 5);
-      setScale(newScale);
-      if (newScale === 1) setTranslate({ x: 0, y: 0 });
+      const next = Math.min(Math.max(g.pinchScale * (dist / g.pinchDist), 1), 5);
+      g.scale = next;
+      if (next <= 1) { g.tx = 0; g.ty = 0; }
+      clampPan();
+      applyTransform(false);
+      setCursor(next > 1 ? "grab" : "default");
       return;
     }
 
     if (e.touches.length === 1) {
-      const touch = e.touches[0];
-
-      if (isDragging && scale > 1) {
-        // Panning
-        const dx = touch.clientX - dragStart.current.x;
-        const dy = touch.clientY - dragStart.current.y;
-        setTranslate({
-          x: translateStart.current.x + dx,
-          y: translateStart.current.y + dy,
-        });
-      } else if (isSwiping.current && touchStartRef.current) {
-        // Swiping
-        const dx = touch.clientX - touchStartRef.current.x;
-        swipeOffset.current = dx;
-        setSwipeX(dx);
+      const t = e.touches[0];
+      if (g.dragging && g.scale > 1) {
+        g.tx = g.txStart + (t.clientX - g.dragStartX);
+        g.ty = g.tyStart + (t.clientY - g.dragStartY);
+        clampPan();
+        applyTransform(false);
+      } else if (g.swiping) {
+        const dx = t.clientX - g.touchStartX;
+        // Rubber-band at edges
+        if ((dx < 0 && !hasNext) || (dx > 0 && !hasPrev)) {
+          g.swipeX = dx * 0.3;
+        } else {
+          g.swipeX = dx;
+        }
+        applyTransform(false);
       }
     }
-  }, [isDragging, scale]);
+  }, [applyTransform, clampPan, hasNext, hasPrev]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.stopPropagation();
-    setIsDragging(false);
+    const g = gs.current;
 
-    if (isSwiping.current && touchStartRef.current) {
-      const dx = swipeOffset.current;
-      const elapsed = Date.now() - touchStartRef.current.time;
-      const velocity = Math.abs(dx) / elapsed;
-      const threshold = velocity > 0.5 ? 30 : 80;
-
-      if (Math.abs(dx) > threshold) {
-        if (dx < 0 && hasNext) {
-          onSwipeLeft();
-        } else if (dx > 0 && hasPrev) {
-          onSwipeRight();
-        }
-      }
-      setSwipeX(0);
-      isSwiping.current = false;
-      swipeOffset.current = 0;
+    if (g.dragging) {
+      g.dragging = false;
+      setCursor(g.scale > 1 ? "grab" : "default");
     }
 
-    touchStartRef.current = null;
-  }, [hasNext, hasPrev, onSwipeLeft, onSwipeRight]);
+    if (g.swiping) {
+      const dx = g.swipeX;
+      const elapsed = Date.now() - g.touchStartTime;
+      const velocity = Math.abs(dx) / Math.max(elapsed, 1);
+      const threshold = velocity > 0.5 ? 30 : 80;
+
+      let swiped = false;
+      if (Math.abs(dx) > threshold) {
+        if (dx < 0 && hasNext) { swiped = true; onSwipeLeft(); }
+        else if (dx > 0 && hasPrev) { swiped = true; onSwipeRight(); }
+      }
+
+      if (!swiped) {
+        // Snap back with animation
+        g.swipeX = 0;
+        g.animating = true;
+        applyTransform(true);
+      }
+
+      g.swiping = false;
+    }
+  }, [hasNext, hasPrev, onSwipeLeft, onSwipeRight, applyTransform]);
 
   return (
     <div
       ref={containerRef}
       className="flex items-center justify-center w-full h-full overflow-hidden"
-      onWheel={handleWheel}
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -227,17 +311,19 @@ function ZoomableImage({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ touchAction: "none", cursor: scale > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
+      style={{ touchAction: "none", cursor }}
       onClick={(e) => e.stopPropagation()}
     >
       <img
+        ref={imgRef}
         src={src}
         alt=""
         className="max-w-[90vw] max-h-[90vh] object-contain select-none"
         draggable={false}
         style={{
-          transform: `translate(${translate.x + swipeX}px, ${translate.y}px) scale(${scale})`,
-          transition: isDragging || isSwiping.current ? "none" : "transform 0.2s ease-out",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+          transform: "translate3d(0,0,0) scale(1)",
         }}
       />
     </div>
