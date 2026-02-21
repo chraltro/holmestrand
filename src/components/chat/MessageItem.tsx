@@ -3,7 +3,7 @@
 import { Message, Profile, POST_TAG_LABELS, POST_TAG_COLORS, PostTag } from "@/lib/types";
 import { useLightbox } from "@/components/ui/ImageLightbox";
 import { EmojiPicker } from "./EmojiPicker";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 function formatTime(dateStr: string) {
   const date = new Date(dateStr);
@@ -51,8 +51,40 @@ function RichContent({ content, profiles }: { content: string; profiles?: Profil
   );
 }
 
+// Client-side unfurl cache to avoid re-fetching on re-renders
+const unfurlCache = new Map<string, { title: string | null; description: string | null; image: string | null; siteName: string | null; favicon: string | null } | null>();
+
 function LinkPreview({ url }: { url: string }) {
   const ytId = getYouTubeId(url);
+  let domain = "";
+  try { domain = new URL(url).hostname.replace("www.", ""); } catch { /* noop */ }
+
+  const [meta, setMeta] = useState<{ title: string | null; description: string | null; image: string | null; siteName: string | null; favicon: string | null } | null>(
+    unfurlCache.get(url) ?? null
+  );
+  const [fetched, setFetched] = useState(unfurlCache.has(url));
+
+  const shouldFetch = !ytId && !!domain;
+
+  useEffect(() => {
+    if (!shouldFetch || fetched) return;
+    let cancelled = false;
+    async function unfurl() {
+      try {
+        const res = await fetch(`/api/unfurl?url=${encodeURIComponent(url)}`);
+        if (!res.ok) { setFetched(true); return; }
+        const data = await res.json();
+        if (!cancelled) {
+          unfurlCache.set(url, data);
+          setMeta(data);
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) setFetched(true);
+    }
+    unfurl();
+    return () => { cancelled = true; };
+  }, [url, fetched, shouldFetch]);
+
   if (ytId) {
     return (
       <div className="mt-2 rounded-xl overflow-hidden max-w-sm" style={{ border: "1px solid var(--border-subtle)" }}>
@@ -60,16 +92,71 @@ function LinkPreview({ url }: { url: string }) {
       </div>
     );
   }
-  let domain = "";
-  try { domain = new URL(url).hostname.replace("www.", ""); } catch { return null; }
+
+  if (!domain) return null;
+
+  const hasRichPreview = meta && (meta.title || meta.image);
+
+  if (hasRichPreview) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 block glass rounded-xl overflow-hidden max-w-sm hover:bg-[var(--surface-glass-hover)] transition-colors group"
+        style={{ border: "1px solid var(--border-subtle)" }}
+      >
+        {meta.image && (
+          <div className="w-full h-40 overflow-hidden" style={{ background: "var(--surface-glass)" }}>
+            <img
+              src={meta.image}
+              alt={meta.title || ""}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
+        <div className="p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            {meta.favicon && (
+              <img
+                src={meta.favicon}
+                alt=""
+                className="w-4 h-4 rounded-sm flex-shrink-0"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            )}
+            <span className="text-[11px] font-medium truncate" style={{ color: "var(--text-muted)" }}>
+              {meta.siteName || domain}
+            </span>
+          </div>
+          {meta.title && (
+            <p className="text-sm font-medium line-clamp-2" style={{ color: "var(--text-primary)" }}>
+              {meta.title}
+            </p>
+          )}
+          {meta.description && (
+            <p className="text-xs line-clamp-2 mt-0.5" style={{ color: "var(--text-secondary)" }}>
+              {meta.description}
+            </p>
+          )}
+        </div>
+      </a>
+    );
+  }
+
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 glass rounded-xl px-3 py-2.5 max-w-sm hover:bg-[var(--surface-glass-hover)] transition-colors group">
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface-glass)" }}>
-        <svg className="w-4 h-4" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+        {meta?.favicon ? (
+          <img src={meta.favicon} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        ) : (
+          <svg className="w-4 h-4" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+        )}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{domain}</p>
-        <p className="text-sm text-amber-600 dark:text-amber-400 truncate">{url}</p>
+        <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{meta?.siteName || domain}</p>
+        <p className="text-sm text-amber-600 dark:text-amber-400 truncate">{meta?.title || url}</p>
       </div>
     </a>
   );
