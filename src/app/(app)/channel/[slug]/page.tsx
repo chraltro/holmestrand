@@ -7,6 +7,8 @@ import { MessageList } from "@/components/chat/MessageList";
 import { MessageInput } from "@/components/chat/MessageInput";
 
 import { BoardGrid } from "@/components/boards/BoardGrid";
+import { TypingIndicator } from "@/components/chat/TypingIndicator";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { Channel, Message, Profile, FloorPlan } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -39,6 +41,12 @@ export default function ChannelPage() {
   const isGenerelt = slug === "generelt";
 
   const { messages, loading: messagesLoading, hasMore, loadMore, deleteMessage, togglePin, editMessage, toggleReaction } = useMessages(channel?.id ?? null, user?.id ?? null);
+  const { typingUsers, emitTyping, emitStopTyping } = useTypingIndicator(
+    channel?.id ?? null,
+    user?.id ?? null,
+    profile?.display_name ?? "",
+    profile?.avatar_url ?? ""
+  );
 
   useEffect(() => {
     async function fetchChannel() {
@@ -124,7 +132,8 @@ export default function ChannelPage() {
       {activeTab === "chat" ? (
         <>
           <MessageList messages={messages} loading={messagesLoading} hasMore={hasMore} onLoadMore={loadMore} onTogglePin={togglePin} onDelete={deleteMessage} onEdit={editMessage} onReply={(msg) => setReplyTo(msg)} onReaction={toggleReaction} currentUserId={user?.id ?? null} isAdmin={!!profile?.is_admin} allProfiles={allProfiles} />
-          {user && <MessageInput channelId={channel.id} userId={user.id} showTagSelector={!isGenerelt} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} profiles={allProfiles} />}
+          <TypingIndicator users={typingUsers} />
+          {user && <MessageInput channelId={channel.id} userId={user.id} showTagSelector={!isGenerelt} replyTo={replyTo} onCancelReply={() => setReplyTo(null)} profiles={allProfiles} onTyping={emitTyping} onStopTyping={emitStopTyping} />}
         </>
       ) : (
         <BoardGrid channelId={channel.id} userId={user?.id ?? null} />
