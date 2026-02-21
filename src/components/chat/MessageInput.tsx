@@ -11,6 +11,8 @@ interface MessageInputProps {
   replyTo?: Message | null;
   onCancelReply?: () => void;
   profiles?: Profile[];
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -18,7 +20,7 @@ const ALL_TAGS: PostTag[] = ["dagens", "inspo", "forslag", "vedtatt"];
 
 function isImageFile(file: File) { return file.type.startsWith("image/"); }
 
-export function MessageInput({ channelId, userId, showTagSelector = false, replyTo, onCancelReply, profiles = [] }: MessageInputProps) {
+export function MessageInput({ channelId, userId, showTagSelector = false, replyTo, onCancelReply, profiles = [], onTyping, onStopTyping }: MessageInputProps) {
   const supabase = createClient();
   const [content, setContent] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -42,6 +44,7 @@ export function MessageInput({ channelId, userId, showTagSelector = false, reply
 
   function handleContentChange(val: string) {
     setContent(val);
+    if (val.trim()) onTyping?.();
     const cursorPos = textareaRef.current?.selectionStart ?? val.length;
     const textBefore = val.slice(0, cursorPos);
     const match = textBefore.match(/@(\S*)$/);
@@ -63,6 +66,7 @@ export function MessageInput({ channelId, userId, showTagSelector = false, reply
     const text = content.trim();
     if (!text) return;
     setContent(""); setMentionQuery(null);
+    onStopTyping?.();
     const insertData: Record<string, unknown> = { channel_id: channelId, user_id: userId, content: text };
     if (replyTo) { insertData.reply_to = replyTo.id; onCancelReply?.(); }
     await supabase.from("messages").insert(insertData);
