@@ -8,6 +8,8 @@ import { useUnreadCounts } from "@/hooks/useUnreadCounts";
 import { ChannelSidebar } from "@/components/channels/ChannelSidebar";
 import { LightboxProvider } from "@/components/ui/ImageLightbox";
 import { SearchModal } from "@/components/ui/SearchModal";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { OfflineBanner } from "@/components/pwa/OfflineBanner";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useMemo, useCallback } from "react";
 
@@ -98,6 +100,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
+        <OfflineBanner />
+        <ServiceWorkerRegistration />
         {/* Mobile header */}
         <div className="lg:hidden flex items-center justify-between px-4 py-3 glass-solid">
           <div className="flex items-center gap-3">
