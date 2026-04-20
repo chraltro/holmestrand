@@ -30,6 +30,16 @@ function getYouTubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
+function isSafeHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false;
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function RichContent({ content, profiles }: { content: string; profiles?: Profile[] }) {
   const parts = content.split(/((?:@\S+)|(?:https?:\/\/[^\s<>)"']+))/g);
   return (
@@ -106,11 +116,13 @@ function LinkPreview({ url }: { url: string }) {
         className="mt-2 block glass rounded-xl overflow-hidden max-w-sm hover:bg-[var(--surface-glass-hover)] transition-colors group"
         style={{ border: "1px solid var(--border-subtle)" }}
       >
-        {meta.image && (
+        {isSafeHttpUrl(meta.image) && (
           <div className="w-full h-40 overflow-hidden" style={{ background: "var(--surface-glass)" }}>
             <img
               src={meta.image}
               alt={meta.title || ""}
+              loading="lazy"
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
@@ -118,10 +130,12 @@ function LinkPreview({ url }: { url: string }) {
         )}
         <div className="p-3">
           <div className="flex items-center gap-1.5 mb-1">
-            {meta.favicon && (
+            {isSafeHttpUrl(meta.favicon) && (
               <img
                 src={meta.favicon}
                 alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
                 className="w-4 h-4 rounded-sm flex-shrink-0"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
@@ -148,8 +162,8 @@ function LinkPreview({ url }: { url: string }) {
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 glass rounded-xl px-3 py-2.5 max-w-sm hover:bg-[var(--surface-glass-hover)] transition-colors group">
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface-glass)" }}>
-        {meta?.favicon ? (
-          <img src={meta.favicon} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        {isSafeHttpUrl(meta?.favicon) ? (
+          <img src={meta!.favicon!} alt="" loading="lazy" referrerPolicy="no-referrer" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         ) : (
           <svg className="w-4 h-4" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
         )}

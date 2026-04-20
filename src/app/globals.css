@@ -14,8 +14,8 @@
     --border-subtle: rgba(180, 160, 130, 0.2);
     --border-active: rgba(232, 168, 124, 0.4);
     --text-primary: #2c1810;
-    --text-secondary: #6b5744;
-    --text-muted: #9a8672;
+    --text-secondary: #5a4838;
+    --text-muted: #7c6a55;
     --accent-amber: #E8A87C;
     --accent-rose: #D4726A;
     --shadow-glow: rgba(232, 168, 124, 0.15);
@@ -29,8 +29,8 @@
     --border-subtle: rgba(255, 255, 255, 0.1);
     --border-active: rgba(232, 168, 124, 0.3);
     --text-primary: #FDF6EC;
-    --text-secondary: rgba(253, 246, 236, 0.6);
-    --text-muted: rgba(253, 246, 236, 0.3);
+    --text-secondary: rgba(253, 246, 236, 0.78);
+    --text-muted: rgba(253, 246, 236, 0.58);
     --accent-amber: #E8A87C;
     --accent-rose: #D4726A;
     --shadow-glow: rgba(232, 168, 124, 0.12);
@@ -254,3 +254,38 @@
 .avatar-gradient {
   background: linear-gradient(135deg, #E8A87C, #D4726A);
 }
+
+/* ── Focus Visible ───────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Reduced Motion ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .blob { display: none !important; }
+}
+
+/* ── Typing Indicator Dots (no bounce) ───────────────────── */
+
+@keyframes typing-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40%           { opacity: 1;    transform: translateY(-2px); }
+}
+.typing-dot {
+  animation: typing-dot 1.2s cubic-bezier(0.33, 1, 0.68, 1) infinite;
+}
+

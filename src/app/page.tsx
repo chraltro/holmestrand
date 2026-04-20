@@ -66,15 +66,14 @@ export default function Home() {
 
       <div className="w-full max-w-sm relative z-10 animate-slide-up">
         <div className="text-center mb-8">
-          {/* House icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-lg mb-4 text-3xl" style={{ boxShadow: "0 8px 24px rgba(232, 168, 124, 0.3)" }}>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-5 text-3xl" style={{ boxShadow: "0 10px 30px -8px rgba(212, 114, 106, 0.35)" }}>
             🏠
           </div>
-          <h1 className="text-4xl font-display font-bold mb-2 gradient-text">
+          <h1 className="font-display font-semibold mb-1.5" style={{ color: "var(--text-primary)", fontSize: "clamp(2.25rem, 6vw, 2.75rem)", letterSpacing: "-0.02em", lineHeight: 1 }}>
             Huset
           </h1>
-          <p style={{ color: "var(--text-secondary)" }}>
-            Chat for husprosjektet
+          <p className="text-sm" style={{ color: "var(--text-muted)", letterSpacing: "0.02em" }}>
+            Et hus i Holmestrand, bygget sammen
           </p>
         </div>
 

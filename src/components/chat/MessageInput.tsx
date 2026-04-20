@@ -18,7 +18,32 @@ interface MessageInputProps {
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const ALL_TAGS: PostTag[] = ["dagens", "inspo", "forslag", "vedtatt"];
 
+const ALLOWED_MIME_PREFIXES = ["image/", "video/", "audio/"];
+const ALLOWED_MIME_EXACT = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/zip",
+  "text/plain",
+  "text/csv",
+]);
+
 function isImageFile(file: File) { return file.type.startsWith("image/"); }
+
+function isAllowedMime(mime: string) {
+  if (!mime) return false;
+  if (ALLOWED_MIME_EXACT.has(mime)) return true;
+  return ALLOWED_MIME_PREFIXES.some((p) => mime.startsWith(p));
+}
+
+function safeExtension(name: string): string {
+  const ext = name.split(".").pop() ?? "";
+  return ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 10).toLowerCase() || "bin";
+}
 
 export function MessageInput({ channelId, userId, showTagSelector = false, replyTo, onCancelReply, profiles = [], onTyping, onStopTyping }: MessageInputProps) {
   const supabase = createClient();
@@ -74,8 +99,9 @@ export function MessageInput({ channelId, userId, showTagSelector = false, reply
 
   async function uploadFile(file: File, tag: PostTag | null): Promise<boolean> {
     if (file.size > MAX_FILE_SIZE) { alert(`Filen "${file.name}" er for stor. Maks 25 MB.`); return false; }
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${channelId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    if (!isAllowedMime(file.type)) { alert(`Filtypen "${file.type || "ukjent"}" stottes ikke.`); return false; }
+    const fileExt = safeExtension(file.name);
+    const filePath = `${channelId}/${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
     const { error } = await supabase.storage.from("files").upload(filePath, file, { contentType: file.type });
     if (error) { alert(`Kunne ikke laste opp "${file.name}": ${error.message}`); return false; }
     const { data: { publicUrl } } = supabase.storage.from("files").getPublicUrl(filePath);

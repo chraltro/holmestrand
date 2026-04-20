@@ -122,8 +122,9 @@ export function useMessages(channelId: string | null, currentUserId: string | nu
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `channel_id=eq.${cid}` },
         async (payload) => {
           if (channelIdRef.current !== cid) return;
-          const { data } = await supabase.from("messages").select("*, profiles(*)").eq("id", payload.new.id).single();
-          if (data) {
+          try {
+            const { data } = await supabase.from("messages").select("*, profiles(*)").eq("id", payload.new.id).single();
+            if (!data || channelIdRef.current !== cid) return;
             const [enriched] = await enrichRef.current([data]);
             setMessages((prev) => {
               if (prev.some((m) => m.id === enriched.id)) return prev;
@@ -131,6 +132,8 @@ export function useMessages(channelId: string | null, currentUserId: string | nu
               messageCache.set(cid, updated);
               return updated;
             });
+          } catch {
+            // swallow — realtime will resync on reconnect
           }
         }
       )
@@ -203,7 +206,11 @@ export function useMessages(channelId: string | null, currentUserId: string | nu
     if (msg?.file_url) {
       const match = msg.file_url.match(/\/object\/public\/files\/(.+?)(\?|$)/);
       if (match) {
-        await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
+        try {
+          await supabase.storage.from("files").remove([decodeURIComponent(match[1])]);
+        } catch {
+          // Orphaned storage object — ignore, soft-failure
+        }
       }
     }
   }, [supabase, messages]);

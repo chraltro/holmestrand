@@ -7,8 +7,11 @@ export const dynamic = "force-dynamic";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fdf6ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A1520" },
+  ],
 };
 
 export const metadata: Metadata = {

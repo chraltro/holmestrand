@@ -43,9 +43,9 @@ export function TypingIndicator({ users }: { users: TypingUser[] }) {
       <span>
         {names} skriver
         <span className="inline-flex ml-0.5">
-          <span className="animate-bounce" style={{ animationDelay: "0ms", animationDuration: "1s" }}>.</span>
-          <span className="animate-bounce" style={{ animationDelay: "150ms", animationDuration: "1s" }}>.</span>
-          <span className="animate-bounce" style={{ animationDelay: "300ms", animationDuration: "1s" }}>.</span>
+          <span className="typing-dot" style={{ animationDelay: "0ms" }}>.</span>
+          <span className="typing-dot" style={{ animationDelay: "180ms" }}>.</span>
+          <span className="typing-dot" style={{ animationDelay: "360ms" }}>.</span>
         </span>
       </span>
     </div>
