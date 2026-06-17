@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/hooks/useTheme";
+import HarbourLink from "./HarbourLink";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         <ThemeProvider>{children}</ThemeProvider>
+        <HarbourLink />
       </body>
     </html>
   );
